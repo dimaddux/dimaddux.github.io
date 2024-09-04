@@ -1,5 +1,3 @@
-## Dylan Maddux
-
 ### Coding Experience
 [Website](https://pages.github.com/).
 
