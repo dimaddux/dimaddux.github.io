@@ -1,12 +1,12 @@
 ## Dylan Maddux
 
 ### Coding Experience
-[Website] (https://github.com/dimaddux/dimaddux.github.io)
+[Website](https://pages.github.com/).
 
-[Project] (https://github.com/dimaddux/dimaddux.github.io)
+[Project](https://pages.github.com/).
 
-[Labs] (https://github.com/dimaddux/dimaddux.github.io)
+[Labs](https://pages.github.com/).
 
-[Homework] (https://github.com/dimaddux/dimaddux.github.io)
+[Homeworks](https://pages.github.com/).
 
 This site was built using [GitHub Pages](https://pages.github.com/).
