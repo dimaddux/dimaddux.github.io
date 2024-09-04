@@ -1,10 +1,11 @@
-# Student-Athlete
+### Coding Experience
+[Website](https://pages.github.com/).
 
-### Education
-Psychology and Statistics, B.A., Grinnell College
+[Project](https://pages.github.com/).
 
-### Work Experience
-Grinnell College Psychology Department – Grinnell, IA
+[Labs](https://pages.github.com/).
 
-### Projects
-STA 230: Intro to Data Science
+[Homeworks](https://pages.github.com/).
+
+This site was built using [GitHub Pages](https://pages.github.com/).
+
