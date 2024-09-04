@@ -11,4 +11,3 @@
 
 This site was built using [GitHub Pages](https://pages.github.com/).
 
-[Lab 19](file:///Users/dylanmaddux/Documents/STA-230/230%20labs/lab-19.html)
