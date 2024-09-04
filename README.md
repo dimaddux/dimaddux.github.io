@@ -1,10 +1,25 @@
-# Student-Athlete
+---
+title: "Portfolio"
+output: 
+  html_document:
+    fig_caption: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
 
-### Education
-Psychology and Statistics, B.A., Grinnell College
+## Coding Experience
 
-### Work Experience
-Grinnell College Psychology Department – Grinnell, IA
+## STA 230: Intro to Data Science
+Website
 
-### Projects
-STA 230: Intro to Data Science
+Project
+
+Labs
+
+Homeworks
+
+```{r}
+plot(1:10)
+```
