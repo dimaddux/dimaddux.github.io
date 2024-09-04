@@ -11,4 +11,3 @@
 
 This site was built using [GitHub Pages](https://pages.github.com/).
 
-This stuff was built with [Google](google.com)
