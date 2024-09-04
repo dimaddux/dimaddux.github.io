@@ -1,10 +1,10 @@
 ## Dylan Maddux
 
 ### Coding Experience
-[Website] (google.com)
+[Website] (https://github.com/dimaddux/dimaddux.github.io)
 
-[Project] (google.com)
+[Project] (https://github.com/dimaddux/dimaddux.github.io)
 
-[Labs] (google.com)
+[Labs] (https://github.com/dimaddux/dimaddux.github.io)
 
-[Homework] (google.com)
+[Homework] (https://github.com/dimaddux/dimaddux.github.io)
