@@ -1,25 +1,7 @@
----
-title: "Portfolio"
-output: 
-  html_document:
-    fig_caption: yes
-    theme: cerulean
-    toc: yes
-    toc_depth: 3
-    toc_float: yes
----
+## Dylan Maddux
 
-## Coding Experience
-
-## STA 230: Intro to Data Science
+### Coding Experience
 Website
-
 Project
-
 Labs
-
-Homeworks
-
-```{r}
-plot(1:10)
-```
+Homework
