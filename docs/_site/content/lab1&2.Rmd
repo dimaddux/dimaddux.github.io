@@ -1,0 +1,199 @@
+---
+title: "Lab #1"
+output: html_document
+date: "2023-08-30"
+author: "Dylan Maddux and Taylor Kingery"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### **LAB 1**
+
+### **Question 1**
+```{r}
+my_data <- read.csv("https://remiller1450.github.io/data/HappyPlanet.csv")
+```
+
+### **Question 2**
+```{r}
+J <- seq(from = 0, to = 100, by = 10)
+K <- rep("XYZ", times = 11)
+
+my_df <- data.frame(J = J, K = K)
+```
+
+### **Question 3**
+```{r}
+str(my_data)
+```
+There are 11 observations in this data set and 7 variables are numeric
+
+### **Question 4**
+```{r}
+my_data [57,3]
+```
+
+### **Question 5 P1**
+```{r}
+lastThree <- my_data [141:143,]
+lastThree
+```
+
+### **Question 5P2**
+```{r}
+lastTen <- my_data [134:143,]
+lastTen
+median(lastTen$LifeExpectancy)
+```
+
+### **Question 6**:
+```{r}
+my_data[my_data$Country == "Albania",   ]
+```
+This code works because it takes only the values from the row "Albania," thus subsetting by only keeping one country
+
+### **Question 7**:
+```{r}
+sub3 <- subset(my_data, Population > 100 & Happiness <= 6)
+sub3
+str(sub3)
+```
+There are 6 observations in the data set
+
+### **LAB 2**
+```{r}
+my_data <- read.csv("https://remiller1450.github.io/data/HappyPlanet.csv")
+life <- my_data$LifeExpectancy
+mean(life)
+sd(life)
+min(life)
+median(life)
+max(life)
+range(life)
+quantile(life, probs = 0.35)
+summary(life)
+```
+### **Question 8**
+I like Apples $H_0: \mu = 0$
+
+### **Question 9 P1**
+The function range() returns numeric values. The difference between the two numbers is the distance between the min and max
+
+### **Question 9 P2**
+```{r}
+quantile(my_data$Population, probs = 0.75)-
+quantile(my_data$Population, probs = 0.25)
+```
+```{r}
+table(my_data$Region)
+table(my_data$LifeExpectancy > 75)
+table(my_data$Region, my_data$LifeExpectancy > 75)
+tab <- table(my_data$Region, my_data$LifeExpectancy > 75)
+class(tab)
+prop.table(tab, margin = 1)
+prop.table(tab, margin = 2)
+```
+### **Question 10**
+These values are different because for margin = 1, the proportions are compared horizontally, as in the percentages of true and false are measured by region (e.g., 76% of countries in Region 1 have life expectancy over 75). On the other hand, for margin = 2, the proportions are compared vertically, so the percentages are measured by the total proportion of countries that fit under either "true" or "false" (e.g., Region 1 makes up 16% of the countries that have a life expectancy over 75).
+
+```{r}
+boxplot(my_data$LifeExpectancy)
+tab <- table(my_data$Region)
+barplot(tab)
+plot(x=women$height, women$weight)
+```
+
+### **Question 11 P1**
+```{r}
+?barplot
+barplot(my_data$Region, horiz = TRUE)
+```
+
+### **Question 11 P2**
+```{r}
+?faithful
+plot(x=faithful$eruptions, faithful$waiting)
+```
+
+It seems as though most of the eruptions either happen after around 1 or 2 minutes, or after 4 or 5 minutes, with the 2.5 to 3.5 minute mark being less frequent. Furthermore, the waiting time to the next eruption increases as the eruption time increases as well.
+
+```{r}
+mix_vec <- c(1, 2, 3, "a", "b", "c")
+class(mix_vec)
+mix_vec <- c(TRUE, FALSE, 1, 2)
+mix_vec
+class(mix_vec)
+mix_vec <- c(TRUE, FALSE, "a")
+mix_vec
+vec <- c("1", "2", "3")
+as.numeric(vec)
+mix_vec <- c("1", "2", "3", "a")
+as.numeric(mix_vec)
+?as.logical
+
+v <- c(T, T, F)
+
+v_num <- as.numeric(v)
+v_char <- as.character(v_num)
+v_logical <- as.logical(v_num)
+
+v_logical
+```
+
+### **Question 12**
+as.character makes the "1,1,0" numbers from v_num into characters, but as.logical only regards "True" or "False" character vectors as valid and therefore produces a NA as output. Since numerical vectors are different and can be converted directly into "True" or "False' logical vectors, as.logical works in this case.
+
+```{r}
+x <- c ("1","2","3","a")
+x <- as.numeric(x)
+is.na(x)
+!is.na(x)
+x[!is.na(x)]
+sum(x)
+mean(x)
+sum(x, na.rm = TRUE)
+mean(x, na.rm = TRUE)
+```
+
+```{r}
+median(my_data$GDPperCapita, na.rm = TRUE)
+subt <- subset(my_data, is.na(GDPperCapita))
+subt$Country
+
+```
+### **Question 13**
+The median GDP per capita is 6632. Serbia and Iraq were removed since their GDP per capita wasn't reported.
+
+```{r}
+x1 <- c("Dec", "Apr", "Jan", "Mar")
+x2 <- c("Dec", "Apr", "Jam", "Mar")
+sort(x1)
+month_levels <- c("Jan","Feb", "Mar", "Apr", "May", "Jun", 
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+y1 <- factor(x1, levels = month_levels)
+y1
+sort(y1)
+y2 <- factor(x2, levels = month_levels)
+y2
+?month.abb
+x <- month.abb[c(1,3,2,5,12,11,10,10,3,4,1,3,2,7)]
+barplot(table(x))
+y <- factor(x, levels = month_levels)
+barplot(table(y))
+```
+```{r}
+colleges <- read.csv("https://remiller1450.github.io/data/Colleges2019.csv")
+```
+
+### **Question 14**
+```{r}
+sub1 <- subset(colleges, Adm_Rate < 0.5 & Region == "Great Lakes")
+mean(sub1$Salary10yr_median, na.rm = TRUE)
+sum(is.na(sub1$Salary10yr_median))
+
+state_levels <- c("IL", "IN", "MI", "OH", "WI")
+z1 <- factor(sub1$State, levels = state_levels)
+barplot(table(z1))
+```
+
