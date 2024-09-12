@@ -11,11 +11,11 @@ output: html_document
 
  <font size="4">Website
 
- <font size="4">[Projects](docs/ghproj.html)
+ <font size="4">[Projects](doc/ghproj.html)
 
- <font size="4">[Labs](docs/ghlabs.html)
+ <font size="4">[Labs](doc/ghlabs.html)
 
- <font size="4">[Homeworks](docs/ghhw.html)
+ <font size="4">[Homeworks](doc/ghhw.html)
  
  <br>
  
