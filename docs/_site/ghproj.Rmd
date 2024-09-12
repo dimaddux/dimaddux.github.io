@@ -1,9 +1,0 @@
----
-title: <br>Projects
-output: html_document
----
-<br>
-<font size="4">[Midterm](content/230midterm.html)
-
-<font size="4">[Final](content/230final.html)
-
