@@ -3,7 +3,7 @@ title: <br>Projects
 output: html_document
 ---
 <br>
-<font size="4">[Midterm](content/230midterm.html)
+<font size="4">[Data Cleaning/Visualization](content/230midterm.html)
 
-<font size="4">[Final](content/230final.html)
+<font size="4">[STA-230 Final Project](content/230final.html)
 
