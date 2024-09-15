@@ -3,12 +3,16 @@ title: <br>Labs
 output: html_document
 ---
 <br>
- <font size="4">[RMarkdown](content/labs1-2.html)
+ <font size="4">[R Markdown](content/labs1-2.html)
 
  <font size="4">[Data Visualization](content/labs3-4.html)
 
  <font size="4">[Data Manipulation](content/labs5-7.html)
 
+ <font size="4">[Strings & Conditionals](content/labs8-10.html)
+ 
  <font size="4">[Interactive Graphics](content/labs11-12.html)
+ 
+ <font size="4">[Multivariate & Logistic Regression](content/labs16-18.html)
 
  <font size="4">[Principal Components Analysis](content/lab19.html)
