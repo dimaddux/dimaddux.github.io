@@ -9,9 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Dylan Maddux" />
 
+<meta name="date" content="2024-09-15" />
 
-<title> Labs</title>
+<title>Labs 13-15</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -348,26 +350,303 @@ display: none;
 
 
 
-<h1 class="title toc-ignore"><br>Labs</h1>
+<h1 class="title toc-ignore">Labs 13-15</h1>
+<h4 class="author">Dylan Maddux</h4>
+<h4 class="date">2024-09-15</h4>
 
 </div>
 
 
-<p><br> <font size="4"><a href="content/labs1-2.html">R Markdown</a></p>
-<p><font size="4"><a href="content/labs3-4.html">Data
-Visualization</a></p>
-<p><font size="4"><a href="content/labs5-7.html">Data
-Manipulation</a></p>
-<p><font size="4"><a href="content/labs8-10.html">Strings &amp;
-Conditionals</a></p>
-<p><font size="4"><a href="content/labs11-12.html">Interactive
-Graphics</a></p>
-<p><font size="4"><a href="content/labs13-15.html">Interactive Web
-Applications</a></p>
-<p><font size="4"><a href="content/labs16-18.html">Multivariate &amp;
-Logistic Regression</a></p>
-<p><font size="4"><a href="content/lab19.html">Principal Components
-Analysis</a></p>
+<pre class="r"><code>library(shiny)</code></pre>
+<div id="lab-13" class="section level1">
+<h1>Lab 13</h1>
+<pre class="r"><code>## Set up the UI object
+ui &lt;- fluidPage(
+  &quot;Hello world&quot;
+)
+
+## Set up the server function
+server &lt;- function(input, output) {
+}
+
+## Build and run the app
+shinyApp(ui, server)</code></pre>
+<pre class="r"><code>colleges &lt;- read.csv(&quot;https://remiller1450.github.io/data/Colleges2019.csv&quot;)
+# Character vector of numeric college variables
+numcols &lt;- names(colleges)[sapply(colleges, is.numeric)]</code></pre>
+<div id="question-1" class="section level2">
+<h2>Question 1</h2>
+<pre class="r"><code>ui &lt;- fluidPage(
+  selectInput(inputId = &quot;Adm_and_Enr&quot;, label = &quot;Select y-axis&quot;, choices = 
+                c(&quot;Enr&quot; = &quot;Enrollment&quot;, &quot;AR&quot; = &quot;Adm_Rate&quot;)),
+  selectInput(inputId = &quot;Color&quot;, label = &quot;Select color&quot;, choices = 
+                c(&quot;ACT_Q1&quot;, &quot;Cost&quot;)),
+  plotOutput(outputId = &quot;myscatter&quot;)
+)
+
+## Set up the server function
+server &lt;- function(input, output) {
+  output$myscatter &lt;- renderPlot ({
+    ggplot(colleges, aes_string(&quot;ACT_median&quot;, input$Adm_and_Enr, color = input$Color)) + geom_point()
+})
+}
+
+## Build and run the app
+shinyApp(ui, server)</code></pre>
+</div>
+<div id="question-2" class="section level2">
+<h2>Question 2</h2>
+<pre class="r"><code>library(DT)
+colleges &lt;- read.csv(&quot;https://remiller1450.github.io/data/Colleges2019.csv&quot;)
+
+ui &lt;- fluidPage(
+  
+  # I can use values from colleges to populate choices
+  # multiple = TRUE allows me to select multiple states at once
+  selectInput(&quot;stateSub&quot;, label = &quot;Choose states to subset:&quot;, 
+              choices = unique(colleges$State), multiple = TRUE, selected = &quot;CA&quot;),
+  tableOutput(outputId = &quot;myplot&quot;)
+)
+
+server &lt;- function(input, output, session) {
+  output$myplot &lt;- renderTable(
+    subset(colleges, State %in% input$stateSub)
+  )
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+<div id="question-3" class="section level2">
+<h2>Question 3</h2>
+<pre class="r"><code>ui &lt;- fluidPage(
+  sliderInput(&quot;x&quot;, &quot;If x is&quot;, min = 1, max = 50, value = 30),
+  sliderInput(&quot;y&quot;, &quot;and y is&quot;, min = 1, max = 50, value = 5),
+  textOutput(&quot;product&quot;),
+  textOutput(&quot;product_plus5&quot;),
+  textOutput(&quot;product_plus10&quot;)
+)
+
+server &lt;- function(input, output, session) {
+  product &lt;- reactive(input$x * input$y)
+  output$product &lt;- renderText({ 
+    Product &lt;- product()
+    paste0(&quot;Then (x * y) is: &quot;, Product)
+  })
+  output$product_plus5 &lt;- renderText({ 
+    Product &lt;- product()
+    paste0(&quot;and (x * y) + 5 is: &quot;, Product + 5)
+  })
+  output$product_plus10 &lt;- renderText({ 
+    Product &lt;- product()
+    paste0(&quot;and (x * y) + 10 is: &quot;, Product + 10)
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+</div>
+<div id="lab-14" class="section level1">
+<h1>Lab 14</h1>
+<div id="question-1-1" class="section level2">
+<h2>Question 1</h2>
+<pre class="r"><code>ui &lt;- fluidPage(
+  numericInput(&quot;n&quot;, label = &quot;Number of obs:&quot;, value = 100),
+  sliderInput(&quot;bins&quot;, label = &quot;Number of bins:&quot;, min = 2, max = 20, value = 10),
+  
+  textOutput(&quot;summary&quot;),
+  plotOutput(&quot;myhist&quot;)
+)
+
+server &lt;- function(input, output) {
+  
+  n &lt;- reactive(input$n)
+  bins &lt;- reactive(input$bins)
+  
+  ## It&#39;s also worth noting that the order that we define things in server() doesn&#39;t
+  # matter. Here, we have output$myhist defined before output$summary, even though
+  # summary comes first in the UI. This is true for ALL objects in server()
+  output$myhist &lt;- renderPlot({
+    X &lt;- rnorm(n())
+    ggplot() + geom_histogram(aes(x = X), bins = bins())
+  })
+  
+  output$summary &lt;- renderText({
+    X &lt;- rnorm(n())
+    paste0(&quot;The mean is: &quot;,  round(mean(X), 4), 
+           &quot; and the standard deviation is: &quot;, round(sd(X), 4))
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+<p>Although the summary (mean and standard deviation) is the same, the
+shape and distribution of the graph looks different. The reason is
+because bins basically tell how many sections we’re going to divide the
+data into, and put all the included values within that bin. Thus, as the
+number of bins change, the number of values in the data set that go in
+that bin would change. That is why the graphs look different for
+different number of bins. This can be seen in our code too because every
+time we change the number of bins, the bins function would be updated,
+which updates the entire render plot. This shows up in the shiny website
+as a changed graph.</p>
+</div>
+<div id="question-2-1" class="section level2">
+<h2>Question 2</h2>
+<pre class="r"><code>freqpoly &lt;- function(x1, x2, binwidth = 0.1, xlim = c(-3, 3)) {
+  df &lt;- data.frame(
+    x = c(x1, x2),
+    g = c(rep(&quot;x1&quot;, length(x1)), rep(&quot;x2&quot;, length(x2)))
+  )
+  
+  ggplot(df, aes(x, colour = g)) +
+    geom_freqpoly(binwidth = binwidth, size = 1) +
+    coord_cartesian(xlim = xlim)
+}
+
+ui &lt;- fluidPage(
+  numericInput(&quot;lambda1&quot;, label = &quot;lambda1&quot;, value = 3),
+  numericInput(&quot;lambda2&quot;, label = &quot;lambda2&quot;, value = 5),
+  numericInput(&quot;n&quot;, label = &quot;n&quot;, value = 1e4, min = 0), 
+  column(9, plotOutput(&quot;hist&quot;))
+)
+server &lt;- function(input, output) {
+  
+  X1 &lt;- reactive(rpois(input$n, input$lambda1))
+  X2 &lt;- reactive(rpois(input$n, input$lambda2))
+  
+  output$hist &lt;- renderPlot({
+    x1 &lt;- X1()
+    x2 &lt;- X2()
+    freqpoly(x1, x2, binwidth = 1, xlim = c(0, 40))
+  }, res = 96)
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+<div id="question-3-1" class="section level2">
+<h2>Question 3</h2>
+<pre class="r"><code>ui &lt;- fluidPage(
+  numericInput(&quot;n&quot;, label = &quot;Number of obs:&quot;, value = 100),
+  sliderInput(&quot;bins&quot;, label = &quot;Number of bins:&quot;, min = 2, max = 20, value = 10),
+  actionButton(&quot;simulate&quot;, label = &quot;Run Simulation&quot;, class = &quot;btn-success&quot;),
+  
+  plotOutput(&quot;myhist&quot;)
+)
+
+server &lt;- function(input, output) {
+  
+  output$myhist &lt;- renderPlot({
+    input$simulate
+    ggplot() + geom_histogram(aes(x = isolate(rnorm(input$n)), bins = isolate(input$bins)))
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+<div id="question-4" class="section level2">
+<h2>Question 4</h2>
+<pre class="r"><code>ui &lt;- fluidPage(
+  selectInput(&quot;group&quot;, &quot;Group by: &quot;, c(&quot;year&quot;, &quot;drv&quot;)),
+  selectInput(&quot;filter&quot;, &quot;Filter var: &quot;, c(&quot;cty&quot;, &quot;hwy&quot;)),
+  sliderInput(&quot;cutoff&quot;, &quot;Cutoff for filter:&quot;, min = 9, max = 44, value = c(10, 40)), 
+  DT::DTOutput(&quot;result&quot;)
+)
+
+server &lt;- function(input, output) {
+  
+  dat &lt;- reactive({
+    mpg %&gt;%
+      filter(.data[[input$filter]] &lt; .env$input$cutoff[2] &amp; 
+               .data[[input$filter]] &gt; .env$input$cutoff[1]) %&gt;%
+      group_by(.data[[input$group]]) %&gt;%
+      summarize(mean(hwy))
+    # filter input$filter by input$cutoff values
+    # group by input$group
+    # summarize to find mean hwy by group
+  })
+  
+  output$result &lt;- renderDT({
+    data.frame(x = input$cutoff[1], y = input$cutoff[2])
+    
+    dat()
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+</div>
+<div id="lab-15" class="section level1">
+<h1>Lab 15</h1>
+<div id="question-1-2" class="section level2">
+<h2>Question 1</h2>
+<pre class="r"><code>ui &lt;- fluidPage(
+  
+  titlePanel(&quot;Title&quot;), 
+  sidebarLayout(
+    sidebarPanel(
+      numericInput(&quot;n&quot;, label = &quot;Number of obs:&quot;, value = 100),
+      sliderInput(&quot;bins&quot;, label = &quot;Number of bins:&quot;, min = 2, max = 20, value = 10)
+      
+    ),
+    mainPanel(
+      plotOutput(&quot;myhist&quot;)
+    )
+  )
+)</code></pre>
+</div>
+<div id="question-2-2" class="section level2">
+<h2>Question 2</h2>
+<pre class="r"><code>freqpoly &lt;- function(x1, x2, binwidth = 0.1, xlim = c(-3, 3)) {
+  df &lt;- data.frame(
+    x = c(x1, x2),
+    g = c(rep(&quot;x1&quot;, length(x1)), rep(&quot;x2&quot;, length(x2)))
+  )
+  
+  ggplot(df, aes(x, colour = g)) +
+    geom_freqpoly(binwidth = binwidth, linewidth = 1) +
+    coord_cartesian(xlim = xlim)
+}
+
+ui &lt;- fluidPage(
+  
+  titlePanel(&quot;Question 2&quot;), 
+  
+  fluidRow(
+    column(4,
+           wellPanel(
+             numericInput(&quot;n1&quot;, label = &quot;Number of obs:&quot;, value = 1000),
+             numericInput(&quot;lambda1&quot;, label = &quot;Lambda 1:&quot;, value = 2)
+           )
+    ),
+    column(4,
+           wellPanel(
+             numericInput(&quot;n2&quot;, label = &quot;Number of obs:&quot;, value = 1000),
+             numericInput(&quot;lambda2&quot;, label = &quot;Lambda 2:&quot;, value = 1)
+           )
+    ),
+    column(4,
+           wellPanel(
+             numericInput(&quot;binwidth&quot;, label = &quot;Binwidth:&quot;, value = 1)
+           )
+    )
+  ),
+  fluidRow(
+    column(10, offset = 1,
+      plotOutput(&quot;myplot&quot;)
+  )
+  )
+)
+
+server &lt;- function(input, output) {
+  output$myplot &lt;- renderPlot({
+    x1 &lt;- rpois(input$n1, input$lambda1)
+    x2 &lt;- rpois(input$n2, input$lambda2)
+    freqpoly(x1, x2, binwidth = input$binwidth, xlim = c(-1, 10))
+  }, res = 96)
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+</div>
 
 
 

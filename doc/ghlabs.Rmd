@@ -13,6 +13,8 @@ output: html_document
  
  <font size="4">[Interactive Graphics](content/labs11-12.html)
  
+ <font size="4">[Interactive Web Applications](content/labs13-15.html)
+ 
  <font size="4">[Multivariate & Logistic Regression](content/labs16-18.html)
 
  <font size="4">[Principal Components Analysis](content/lab19.html)

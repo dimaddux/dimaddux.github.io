@@ -4,18 +4,17 @@ output: html_document
 ---
 <font size="3">Grinnell College - B.A. in [Psychology](https://www.grinnell.edu/academics/majors-concentrations/psychology) w/ Concentration in [Statistics](https://www.grinnell.edu/academics/majors-concentrations/statistics) 
 
-
 <br>
 
 ### Coding Experience:
-
- <font size="4">Website
 
  <font size="4">[Projects](doc/ghproj.html)
 
  <font size="4">[Labs](doc/ghlabs.html)
 
  <font size="4">[Homeworks](doc/ghhw.html)
+ 
+ <font size="4">Website
  
  <br>
  
