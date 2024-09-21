@@ -23,6 +23,8 @@ output: html_document
   
   <font size="3">[STA-209: Applied Statistics](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44226) (Minitab, Grinnell College)
   
+  <font size="3">[PSY-225: Research Methods](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=16&coid=37828) (SPSS, Grinnell College)
+  
   <font size="3">PSY-399: Directed Research (R, Grinnell College)
   
    
