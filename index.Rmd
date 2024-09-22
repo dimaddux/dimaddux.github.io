@@ -17,13 +17,13 @@ output: html_document
  <br>
  
 ### Relevant Courses:
-  <font size="3">[STA-310: Statistical Modeling](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44235) (R, Grinnell College)
+  <font size="3">[STA-310](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44235): Statistical Modeling (R, Grinnell College)
  
-  <font size="3">[STA-230: Intro to Data Science](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=26&coid=53002) (R, Grinnell College)
+  <font size="3">[STA-230](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=26&coid=53002): [Intro to Data Science](https://collinn.github.io/teaching/2023/s230f23.html) (R, Grinnell College)
   
-  <font size="3">[STA-209: Applied Statistics](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44226) (Minitab, Grinnell College)
+  <font size="3">[STA-209](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44226): Applied Statistics (Minitab, Grinnell College)
   
-  <font size="3">[PSY-225: Research Methods](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=16&coid=37828) (SPSS, Grinnell College)
+  <font size="3">[PSY-225](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=16&coid=37828): Research Methods (SPSS, Grinnell College) 
   
   <font size="3">PSY-399: Directed Research (R, Grinnell College)
   

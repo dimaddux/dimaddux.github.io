@@ -3,12 +3,16 @@ title: <br>Homeworks
 output: html_document
 ---
 <br>
-<font size="4">[Data Science Homework 1](content/230hw1.html)
+<font size="4">[Data Science 1](content/230hw1.html)
 
-<font size="4">[Data Science Homework 2](content/230hw2.html)
+<font size="4">[Data Science 2](content/230hw2.html)
 
-<font size="4">[Data Science Homework 3](content/230hw3.html)
+<font size="4">[Data Science 3](content/230hw3.html)
 
-<font size="4">[Data Science Homework 4](content/230hw4.html)
+<font size="4">[Data Science 4](content/230hw4.html)
 
-<font size="4">[Data Science Homework 5](content/230hw5.html)
+<font size="4">[Data Science 5](content/230hw5.html)
+
+<font size="4">[Statistical Modeling 1](content/310hw1.html)
+
+<font size="4">[Statistical Modeling 2](content/310hw2.html)
