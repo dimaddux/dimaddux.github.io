@@ -1,0 +1,278 @@
+---
+title: <br>R Shiny App Code
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+<br>
+
+This is the full code in RScript for running the Shiny App on 'United States Crime Rates'. The process included reading in the original data from [Kaggle](https://www.kaggle.com/datasets/mikejohnsonjr/united-states-crime-rates-by-county/data), cleaning and manipulating the data, merging it with the other datasets on the economic indicators of each state as well as with the maps datasets, and then creating the interactive application which displays:
+
+1) maps of each state and county, and their respective Violent and Property Crime Rates
+
+2) a table displaying comparisons of Violent and Property Crime Rates by state and county
+
+3) scatter plots displaying the relationship between Violent and Property Crime Rates and the Economic Indicators of Median Household Income and Poverty Rate
+
+<br>
+
+```{r}
+# Libraries
+library(usdata, ggplot2, dplyr, stringr, plotly, tidyr, shiny, plotly, DT, rsconnect, maps, shinycssloaders)
+
+# read crime data set
+ogdata <- read.csv('crime_data_w_population_and_crime_rate.csv')
+
+# clean data set
+ogsep <- separate(ogdata, 
+                  col = county_name, 
+                  into = c("County", "State"),
+                  sep = ", ")
+og_clean <- ogsep %>%
+  select(-c(3:14,24:25)) %>%
+  mutate(Violent_Crime = ((MURDER+RAPE+ROBBERY+AGASSLT)/population)*100000) %>%
+  mutate(Property_Crime = ((BURGLRY+LARCENY+MVTHEFT+ARSON)/population)*100000) %>%
+  select(-c(3:10)) %>%
+  mutate(County = str_remove_all(County, " County")) %>%
+  mutate(County = str_replace(County, "St. Louis city", "St. Louis City")) %>%
+  mutate(County = str_replace(County, "Baltimore city", "Baltimore City")) %>%
+  mutate(County = str_remove_all(County, " Parish")) %>%
+  mutate(County = str_replace_all(County, "\\. ", " ")) %>%
+  mutate(County = str_replace(County, "LaPorte", "La Porte")) %>%
+  mutate(County = str_replace(County, "LaMoure", "La Moure")) %>%
+  mutate(County = str_replace(County, "LaSalle", "La Salle")) %>%
+  mutate(County = str_replace(County, "DeKalb", "De Kalb")) %>%
+  mutate(County = str_replace(County, "DeWitt", "De Witt")) %>%
+  mutate(County = str_replace_all(County, "DeSoto", "De Soto")) %>%
+  mutate(County = str_replace_all(County, "DuPage", "Du Page")) %>%
+  mutate(County = str_replace_all(County, "Yellowstone County", "Yellowstone")) %>%
+  mutate(County = str_remove_all(County, "\\'")) %>%
+  mutate(County = str_replace_all(County, "Suffolk city", "Suffolk")) %>%
+  mutate(County = str_replace_all(County, "Hampton city", "Hampton")) %>%
+  mutate(County = str_replace_all(County, "Newport News city", "Newport News")) %>%
+  mutate(County = str_replace_all(County, "Norfolk city", "Norfolk")) %>%
+  filter(!str_detect(County, " Borough| city")) %>%
+  mutate(State = abbr2state(State)) %>%
+  rename(Population = population) %>%
+  arrange(State) %>%
+  filter(!State == "District of Columbia") %>%
+  mutate(across(c(4:5), round, 1))
+
+# read unemployment and poverty data sets
+unem <- read.csv('UnemploymentDataSet.csv')
+
+pov <- read.csv('PovertyEstimates.csv')
+
+# merge economic indicators data sets
+unemsep <- separate(unem, 
+                    col = Area_Name, 
+                    into = c("Area_name", "Stabr"),
+                    sep = ", ")
+unempov <- left_join(x = unemsep, y = pov, by = c("Area_name", "FIPS_Code"))
+econ <- left_join(x = ogsep, y = unempov, by = c("State", "County" = "Area_name"))
+
+# clean economic indicators data set
+econ_clean <- econ %>%
+  select(-c(4:14,24:30, 32:34)) %>%
+  mutate(Violent_Crime = ((MURDER+RAPE+ROBBERY+AGASSLT)/population)*100000) %>%
+  mutate(Property_Crime = ((BURGLRY+LARCENY+MVTHEFT+ARSON)/population)*100000) %>%
+  select(-c(3:11, 14)) %>%
+  rename("Population" = "population", "Median_Household_Income" = "MEDHHINC_2021", "Unemployment_Rate" = "Unemployment_rate_2021") %>%
+  mutate(State = abbr2state(State)) %>%
+  arrange(State) %>%
+  filter(!row_number() %in% 314) %>%
+  na.omit() %>%
+  filter(!State == "District of Columbia") %>%
+  mutate(across(c(6:7), round, 1))
+
+# create states only data set
+ogstates <- ogsep %>%
+  group_by(State) %>%
+  summarise(Violent_Crime = (sum(MURDER+RAPE+ROBBERY+AGASSLT) / sum(population))*100000, Property_Crime = (sum(BURGLRY+LARCENY+MVTHEFT+ARSON) / sum(population))*100000) %>%
+  mutate(State = abbr2state(State)) %>%
+  mutate(County = State) %>%
+  filter(!State == "District of Columbia") %>%
+  select(-c(4)) %>%
+  mutate(across(c(2:3), round, 1))
+
+# create states econ data set
+econstates1 <- unempov %>%
+  filter(is.na(Stabr.x)) %>%
+  filter(!row_number() %in% c(1, 11)) %>%
+  select(-c(1, 3:7, 10:11)) %>%
+  mutate(State = abbr2state(State)) %>%
+  filter(!State == "District of Columbia")
+
+# merge with crime data
+econstates <- inner_join(x = econstates1, y = ogstates, by = "State") %>%
+  rename("Median_Household_Income" = "MEDHHINC_2021", "Unemployment_Rate" = "Unemployment_rate_2021") %>%
+  mutate(County = State)
+
+# Maps
+states <- map_data("state")
+counties <- map_data("county")
+
+# change crime data to lower case
+oglower <- og_clean %>%
+  mutate(region = str_to_lower(State)) %>%
+  mutate(subregion = str_to_lower(County)) %>%
+  select(-c(1,2)) %>%
+  relocate(region, subregion)
+
+# merge with counties
+crime_counties <- left_join(x = counties, y = oglower, by = c("region","subregion"))
+anti_counties <- anti_join(x = counties, y = oglower, by = c("region","subregion"))
+
+# change states and map data to upper case
+crime_map <- crime_counties %>%
+  mutate(region = str_to_title(region)) %>%
+  mutate(subregion = str_to_title(subregion)) %>%
+  filter(!region == "District Of Columbia")
+
+states1 <- states %>%
+  mutate(region = str_to_title(region)) %>%
+  mutate(subregion = str_to_title(subregion)) %>%
+  filter(!region == "District Of Columbia")
+
+save.image("MyData.rData")
+
+# Shiny App
+ui = fluidPage(
+  titlePanel("United States Crime Rates (per 100,000)"),
+  fluidRow(
+    column(4,
+           selectInput(inputId = "var1", label = "Select State:", choices = c("All", unique(crime_map$region))))
+  ),
+  mainPanel(
+    tabsetPanel(
+      tabPanel("Maps",
+               fluidRow(
+                 column(4,
+                        HTML("<br>"),
+                        selectInput(inputId = "var2", label = "Select Type of Crime:", choices = c("Violent Crime" = "Violent_Crime", "Property Crime" = "Property_Crime"))), 
+                 column(4, 
+                        HTML("<br>"), 
+                        selectInput(inputId = "scale", label = "Select Color Scale:", choices = c("Viridis", "Gradient")))),
+               plotlyOutput(outputId = "map") %>% withSpinner(color="#0dc5c1")),
+      tabPanel("Data",
+               fluidRow(
+                 column(4,
+                        HTML("<br>"),
+                        uiOutput("test")
+                 )),
+               DTOutput(outputId = "mytable")),
+      tabPanel("Economic Indicators",
+               fluidRow(
+                 column(4,
+                        HTML("<br>"),
+                        selectInput(inputId = "crime", label = "Select Type of Crime:", choices = c("Violent Crime" = "Violent_Crime", "Property Crime" = "Property_Crime"))),
+                 column(4,
+                        HTML("<br>"),
+                        selectInput(inputId = "econ", label = "Select Economic Indicator:", choices = c("Median Household Income" = "Median_Household_Income", "Unemployment Rate" = "Unemployment_Rate")))),
+               plotlyOutput(outputId = "myscatter")
+      )
+    )
+  )
+)
+
+server = function(input, output){
+  dat <- reactive({
+    if(input$var1 == "All"){
+      return(crime_map)
+    } else{
+      subset(crime_map, region == input$var1)
+    }})
+  dat2 <- reactive({
+    if(input$var1 == "All"){
+      return(states1)
+    } else{
+      subset(states1, region == input$var1)
+    }
+  })
+  dat3 <- reactive({
+    if(input$var1 == "All"){
+      return(ogstates)
+    } else{
+      subset(og_clean, State == input$var1)
+    }
+  }
+  )
+  dat4 <- reactive({
+    if(input$var1 == "All"){
+      return(econstates)
+    } else{
+      subset(econ_clean, State == input$var1)
+    }
+  })
+  
+  
+  output$map <- renderPlotly({
+    w = switch(input$var1,
+               "All" = 1400, "North Carolina" = 1000, "Wyoming" = 700, "New York" = 700,"Arkansas" = 600, "Iowa" = 700,"Washington" = 800, "Nebraska" = 900, "Kansas" = 800, "Virginia" = 900, "North Dakota" = 800, "South Dakota" = 800, "Texas" = 700, "Massachusetts" = 750, "Maryland" = 800, "Connecticut" = 700, "Colorado" = 700,"Tennessee" = 1000,"South Carolina" = 700, "Montana" = 900,"Pennsylvania" = 900, "Oklahoma" = 1000, "Kentucky" = 1000,"Oregon" = 700,"New Jersey" = 400, "Alabama" = 400, "Arizona" = 500, "Delaware" = 400, "Maine" = 400, "Illinois" = 400, "Nevada" = 500, "Indiana" = 500, "Idaho" = 500, "Mississippi" = 500, "New Hampshire" = 400, "Rhode Island" = 500, "Utah" = 400, "Vermont" = 500, 600)
+    h = switch(input$var1,
+               "All" = 700,
+               "North Carolina" = 400,
+               "Tennessee" = 300,
+               500)
+    if (input$var1 == "All") {
+      p <- ggplot(data = dat(), aes(x = long, y = lat, group = group, text = paste("State:", region))) + 
+        geom_polygon(data = dat2(), color = "black", fill = NA, linewidth = 0.5, aes(group = group)) +
+        geom_polygon(data = dat(), color = "brown", linewidth = 0.2, alpha = 0.75, aes(fill = .data[[input$var2]])) + 
+        scale_fill_continuous(type = str_to_lower(input$scale), trans = "sqrt") + theme_bw() +
+        labs(fill = input$var2)
+      ggplotly(p, width = w, height = h, tooltip = "text")
+    }
+    else{
+      p <- ggplot(data = dat(), aes(x = long, y = lat, group = group, text = paste("County:", subregion, "<br>", "Crime Rate:", get(input$var2)))) + 
+        geom_polygon(data = dat(), color = "brown", linewidth = 0.2, alpha = 0.75, aes(fill = .data[[input$var2]])) + 
+        scale_fill_continuous(type = str_to_lower(input$scale), trans = "sqrt") + theme_bw() +
+        labs(fill = input$var2)
+      ggplotly(p, width = w, height = h, tooltip = "text") 
+    } 
+  }
+  )
+  output$test <- renderUI({
+    if(input$var1 == "All") {
+      selectInput("stateSub", label = "Select State:", 
+                  choices = c("All States", unique(ogstates$State)), multiple = TRUE, selected = "All States")
+    }
+    
+    else {
+      sub <- subset(og_clean, State == input$var1)
+      selectInput("countySub", label = "Select Counties:", 
+                  choices = c("All Counties", unique(sub$County)), multiple = TRUE, selected = "All Counties")
+    }
+  })
+  
+  output$mytable <- renderDT({
+    if(input$var1 == "All" & "All States" %in% input$stateSub) {
+      return(ogstates)
+    }
+    else if(input$var1 == "All") {
+      subset(ogstates, State %in% input$stateSub)
+    }
+    else if("All Counties" %in% input$countySub) {
+      subset(og_clean, State %in% input$var1)
+    }
+    else {
+      subset(og_clean, County %in% input$countySub & State %in% input$var1)
+    }
+  }
+  )
+  output$myscatter <- renderPlotly({
+    fit <- lm(get(input$crime) ~ get(input$econ), data = dat4())
+    plot_ly(data = dat4()) %>%
+      add_trace(type = "scatter", mode = "markers", x = as.formula(paste0("~",input$econ)),
+                y = as.formula(paste0("~",input$crime)), text = ~str_c("<b>", County)) %>%
+      add_lines(x = as.formula(paste0("~",input$econ)), y = fitted(fit)) %>%
+      layout(xaxis = list(title = 'Economic Indicator'),
+             yaxis = list(title = 'Crime Rate'))
+  }
+  )
+}
+
+shinyApp(ui, server)
+```

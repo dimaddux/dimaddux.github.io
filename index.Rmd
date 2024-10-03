@@ -14,7 +14,9 @@ output: html_document
 
  <font size="4">[Labs](doc/ghlabs.html)
  
- <br>
+ <font size="4">[Website](doc/webs.html)
+ 
+ <br> 
  
 ### Relevant Courses:
   <font size="3">[STA-310](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44235): Statistical Modeling (R, Grinnell College)
