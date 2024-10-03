@@ -218,7 +218,7 @@ server = function(input, output){
                "Tennessee" = 300,
                500)
     if (input$var1 == "All") {
-      p <- ggplot(data = dat(), aes(x = long, y = lat, group = group, text = paste("State:", region))) + 
+      p <- ggplot(data = dat(), aes(x = long, y = lat, group = group, text = paste(region))) + 
         geom_polygon(data = dat2(), color = "black", fill = NA, linewidth = 0.5, aes(group = group)) +
         geom_polygon(data = dat(), color = "brown", linewidth = 0.2, alpha = 0.75, aes(fill = .data[[input$var2]])) + 
         scale_fill_continuous(type = str_to_lower(input$scale), trans = "sqrt") + theme_bw() +

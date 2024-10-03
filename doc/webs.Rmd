@@ -3,6 +3,6 @@ title: <br>Website
 output: html_document
 ---
 <br>
-<font size="4">[R Shiny App Link](https://sugoru.shinyapps.io/usccr/)
+<font size="4">[R Shiny App Link](https://sugoru.shinyapps.io/usccr/) (*Warning: Application takes ~40 seconds to load due to large dataset*)
 
 <font size="4">[R Shiny App Code](webcode.html)
