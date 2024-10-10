@@ -9,9 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Dylan Maddux" />
 
+<meta name="date" content="2024-10-04" />
 
-<title> Projects</title>
+<title>SQL Basics</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -348,16 +350,778 @@ display: none;
 
 
 
-<h1 class="title toc-ignore"><br>Projects</h1>
+<h1 class="title toc-ignore">SQL Basics</h1>
+<h4 class="author">Dylan Maddux</h4>
+<h4 class="date">2024-10-04</h4>
 
 </div>
 
 
-<p><br> <font size="4"><a href="content/230midterm.html">Data
-Cleaning/Visualization</a></p>
-<p><font size="4"><a href="content/230final.html">Data Science Final
-Project</a></p>
-<p><font size="4"><a href="content/SQLproj.html">SQL Basics</a></p>
+<pre class="r"><code>library(DBI)
+library(odbc)
+library(RSQLite)
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.4     ✔ readr     2.1.5
+## ✔ forcats   1.0.0     ✔ stringr   1.5.1
+## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+## ✔ purrr     1.0.2     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre class="r"><code>library(dbplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dbplyr&#39;
+## 
+## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     ident, sql</code></pre>
+<pre class="r"><code>orders &lt;- read.csv(&quot;https://raw.githubusercontent.com/ds4stats/r-tutorials/master/merging/data/orders.csv&quot;, as.is = TRUE)
+customers &lt;- read.csv(&quot;https://raw.githubusercontent.com/ds4stats/r-tutorials/master/merging/data/customers.csv&quot;, as.is = TRUE)
+
+#Create a temporary local database in memory
+Lab9DB &lt;- dbConnect(RSQLite::SQLite(), &quot;:memory:&quot;)</code></pre>
+<div id="create-data-tables" class="section level3">
+<h3>Create Data Tables</h3>
+<pre class="r"><code>#Create the &quot;courses&quot; table
+dbExecute(Lab9DB, &quot;CREATE TABLE `courses` (
+  `cid` varchar(6) NOT NULL,
+  `cname` varchar(50) NOT NULL,
+  `did` varchar(3) NOT NULL
+)&quot;)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>#Create the &quot;departments&quot; table
+dbExecute(Lab9DB, &quot;CREATE TABLE `departments` (
+  `did` varchar(3) NOT NULL,
+  `depname` varchar(50) NOT NULL
+)&quot;)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>#Create the &quot;profcourses&quot; table
+dbExecute(Lab9DB, &quot;CREATE TABLE `profcourses` (
+  `pid` int(11) NOT NULL,
+  `cid` varchar(6) NOT NULL
+)&quot;)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>#Create the &quot;professors&quot; table
+dbExecute(Lab9DB, &quot;CREATE TABLE `professors` (
+  `pid` int(11) NOT NULL,
+  `fname` varchar(50) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `did` varchar(3) NOT NULL
+)&quot;)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>dbListTables(Lab9DB)</code></pre>
+<pre><code>## [1] &quot;courses&quot;     &quot;departments&quot; &quot;profcourses&quot; &quot;professors&quot;</code></pre>
+</div>
+<div id="fill-data-tables" class="section level3">
+<h3>Fill Data Tables</h3>
+<pre class="r"><code>#Fill the courses table
+dbExecute(Lab9DB, &quot;INSERT INTO `courses` (`cid`, `cname`, `did`) VALUES
+(&#39;CHM129&#39;, &#39;General Chemistry w/lab&#39;, &#39;CHM&#39;),
+(&#39;CHM210&#39;, &#39;Analytical Chemistry w/Lab&#39;, &#39;CHM&#39;),
+(&#39;CHM221&#39;, &#39;Organic Chemistry I w/lab&#39;, &#39;CHM&#39;),
+(&#39;CHM358&#39;, &#39;Instrumental Analysis w/lab&#39;, &#39;CHM&#39;),
+(&#39;CHM363&#39;, &#39;Physical Chemistry I w/lab&#39;, &#39;CHM&#39;),
+(&#39;CHM395&#39;, &#39;ST: Adv NMR Spectroscopy&#39;, &#39;CHM&#39;),
+(&#39;CSC151&#39;, &#39;Functional Prob Solving w/lab&#39;, &#39;CSC&#39;),
+(&#39;CSC161&#39;, &#39;Imperative Prob Solving w/lab&#39;, &#39;CSC&#39;),
+(&#39;CSC207&#39;, &#39;OO Prob Slvg, Data Struc/Alg&#39;, &#39;CSC&#39;),
+(&#39;CSC208&#39;, &#39;Discrete Structures&#39;, &#39;CSC&#39;),
+(&#39;CSC213&#39;, &#39;Oper Sys/Paral Algor w/lab&#39;, &#39;CSC&#39;),
+(&#39;CSC262&#39;, &#39;Computer Vision&#39;, &#39;CSC&#39;),
+(&#39;CSC301&#39;, &#39;Analysis of Algorithms&#39;, &#39;CSC&#39;),
+(&#39;CSC324&#39;, &#39;Software Design &amp; Dev w/Lab&#39;, &#39;CSC&#39;),
+(&#39;CSC341&#39;, &#39;Auto, Frm Lng, Cmp Cmplxty&#39;, &#39;CSC&#39;),
+(&#39;CSC395&#39;, &#39;ST: Algorithms, Ethics &amp; Soc&#39;, &#39;CSC&#39;),
+(&#39;ECN111&#39;, &#39;Introduction to Economics&#39;, &#39;ECN&#39;),
+(&#39;ECN235&#39;, &#39;Money and Banking&#39;, &#39;ECN&#39;),
+(&#39;ECN240&#39;, &#39;Resource &amp; Environ Economics&#39;, &#39;ECN&#39;),
+(&#39;ECN280&#39;, &#39;Microeconomic Analysis&#39;, &#39;ECN&#39;),
+(&#39;ECN282&#39;, &#39;Macroeconomic Analysis&#39;, &#39;ECN&#39;),
+(&#39;ECN286&#39;, &#39;Econometrics&#39;, &#39;ECN&#39;),
+(&#39;ECN295&#39;, &#39;ST: Behavioral Economics&#39;, &#39;ECN&#39;),
+(&#39;ECN366&#39;, &#39;Seminar in Health Economics&#39;, &#39;ECN&#39;),
+(&#39;ECN378&#39;, &#39;Seminar in Law &amp; Economics&#39;, &#39;ECN&#39;),
+(&#39;ECN379&#39;, &#39;Seminar in Econ of Crime&#39;, &#39;ECN&#39;),
+(&#39;ECN395&#39;, &#39;ST: Time Series Econometrics&#39;, &#39;ECN&#39;),
+(&#39;MAT100&#39;, &#39;Math Laboratory&#39;, &#39;MAT&#39;),
+(&#39;MAT131&#39;, &#39;Calculus I&#39;, &#39;MAT&#39;),
+(&#39;MAT133&#39;, &#39;Calculus II&#39;, &#39;MAT&#39;),
+(&#39;MAT195&#39;, &#39;ST: Intro to Math Practice&#39;, &#39;MAT&#39;),
+(&#39;MAT208&#39;, &#39;Discrete Structures&#39;, &#39;MAT&#39;),
+(&#39;MAT215&#39;, &#39;Linear Algebra&#39;, &#39;MAT&#39;),
+(&#39;MAT218&#39;, &#39;Elementary Number Theory&#39;, &#39;MAT&#39;),
+(&#39;MAT220&#39;, &#39;Differential Equations&#39;, &#39;MAT&#39;),
+(&#39;MAT313&#39;, &#39;Numerical Analysis&#39;, &#39;MAT&#39;),
+(&#39;MAT316&#39;, &#39;Foundations of Analysis&#39;, &#39;MAT&#39;),
+(&#39;MAT317&#39;, &#39;Fourier Analysis&#39;, &#39;MAT&#39;),
+(&#39;MAT321&#39;, &#39;Foundatns of Abstract Algebra&#39;, &#39;MAT&#39;),
+(&#39;MAT335&#39;, &#39;Probability &amp; Statistics I&#39;, &#39;MAT&#39;),
+(&#39;STA209&#39;, &#39;Applied Statistics&#39;, &#39;STA&#39;),
+(&#39;STA230&#39;, &#39;Introduction to Data Science&#39;, &#39;STA&#39;),
+(&#39;STA310&#39;, &#39;Statistical Modeling&#39;, &#39;STA&#39;),
+(&#39;STA335&#39;, &#39;Probability &amp; Statistics I&#39;, &#39;STA&#39;);&quot;)</code></pre>
+<pre><code>## [1] 44</code></pre>
+<pre class="r"><code>#Fill the departments table
+dbExecute(Lab9DB, &quot;INSERT INTO `departments` (`did`, `depname`) VALUES
+(&#39;CHM&#39;, &#39;Chemistry&#39;),
+(&#39;CSC&#39;, &#39;Computer Science&#39;),
+(&#39;ECN&#39;, &#39;Economics&#39;),
+(&#39;MAT&#39;, &#39;Mathematics&#39;),
+(&#39;STA&#39;, &#39;Statistics&#39;);&quot;)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<pre class="r"><code>#Fill the professors table
+dbExecute(Lab9DB, &quot;INSERT INTO `professors` (`pid`, `fname`, `email`, `did`) VALUES
+(42, &#39;Royce&#39;, &#39;[Royce]&#39;, &#39;MAT&#39;),
+(41, &#39;Abhinaba&#39;, &#39;[Abhinaba]&#39;, &#39;ECN&#39;),
+(40, &#39;Andrea&#39;, &#39;[Andrea]&#39;, &#39;ECN&#39;),
+(39, &#39;Andrew&#39;, &#39;[Andrew]&#39;, &#39;CHM&#39;),
+(38, &#39;Bradley&#39;, &#39;[Bradley]&#39;, &#39;ECN&#39;),
+(37, &#39;Charlie&#39;, &#39;[Charlie]&#39;, &#39;CSC&#39;),
+(36, &#39;Christopher&#39;, &#39;[Christopher]&#39;, &#39;MAT&#39;),
+(35, &#39;Christy&#39;, &#39;[Christy]&#39;, &#39;MAT&#39;),
+(34, &#39;Collin&#39;, &#39;[Collin]&#39;, &#39;STA&#39;),
+(33, &#39;Corasi&#39;, &#39;[Corasi]&#39;, &#39;CHM&#39;),
+(32, &#39;Debdeep&#39;, &#39;[Debdeep]&#39;, &#39;MAT&#39;),
+(31, &#39;Elaine&#39;, &#39;[Elaine]&#39;, &#39;CHM&#39;),
+(30, &#39;Elizabeth&#39;, &#39;[Elizabeth]&#39;, &#39;CHM&#39;),
+(29, &#39;Eric&#39;, &#39;[Eric]&#39;, &#39;CSC&#39;),
+(28, &#39;Erick&#39;, &#39;[Erick]&#39;, &#39;CHM&#39;),
+(27, &#39;Fernanda&#39;, &#39;[Fernanda]&#39;, &#39;CSC&#39;),
+(26, &#39;James&#39;, &#39;[James]&#39;, &#39;CHM&#39;),
+(25, &#39;Jeff&#39;, &#39;[Jeff]&#39;, &#39;STA&#39;),
+(24, &#39;Jenny&#39;, &#39;[Jenny]&#39;, &#39;MAT&#39;),
+(23, &#39;Jerod&#39;, &#39;[Jerod]&#39;, &#39;CSC&#39;),
+(22, &#39;Joe&#39;, &#39;[Joe]&#39;, &#39;MAT&#39;),
+(21, &#39;Jonathan&#39;, &#39;[Jonathan]&#39;, &#39;STA&#39;),
+(20, &#39;Keith&#39;, &#39;[Keith]&#39;, &#39;ECN&#39;),
+(19, &#39;Leah&#39;, &#39;[Leah]&#39;, &#39;CSC&#39;),
+(18, &#39;Logan&#39;, &#39;[Logan]&#39;, &#39;ECN&#39;),
+(17, &#39;Maisha&#39;, &#39;[Maisha]&#39;, &#39;CHM&#39;),
+(16, &#39;Marc&#39;, &#39;[Marc]&#39;, &#39;MAT&#39;),
+(15, &#39;Mark&#39;, &#39;[Mark]&#39;, &#39;CHM&#39;),
+(14, &#39;Meredith&#39;, &#39;[Meredith]&#39;, &#39;ECN&#39;),
+(13, &#39;Molly&#39;, &#39;[Molly]&#39;, &#39;CHM&#39;),
+(12, &#39;Nathan&#39;, &#39;[Nathan]&#39;, &#39;STA&#39;),
+(11, &#39;Nicole&#39;, &#39;[Nicole]&#39;, &#39;CSC&#39;),
+(10, &#39;Peter-Michael&#39;, &#39;[Peter-Michael]&#39;, &#39;CSC&#39;),
+(9, &#39;Pratima&#39;, &#39;[Pratima]&#39;, &#39;MAT&#39;),
+(8, &#39;Rajendra&#39;, &#39;[Rajendra]&#39;, &#39;CHM&#39;),
+(7, &#39;Renee&#39;, &#39;[Renee]&#39;, &#39;MAT&#39;),
+(6, &#39;Samuel&#39;, &#39;[Samuel]&#39;, &#39;CSC&#39;),
+(5, &#39;Stephen&#39;, &#39;[Stephen]&#39;, &#39;CHM&#39;),
+(4, &#39;Thu&#39;, &#39;[Thu]&#39;, &#39;ECN&#39;),
+(3, &#39;William&#39;, &#39;[William]&#39;, &#39;STA&#39;),
+(2, &#39;Xiang&#39;, &#39;[Xiang]&#39;, &#39;ECN&#39;),
+(1, &#39;Xinchan&#39;, &#39;[Xinchan]&#39;, &#39;ECN&#39;);&quot;)</code></pre>
+<pre><code>## [1] 42</code></pre>
+<pre class="r"><code>#Fill the profcourses table
+dbExecute(Lab9DB, &quot;INSERT INTO `profcourses` (`pid`, `cid`) VALUES
+(42, &#39;MAT131&#39;),
+(42, &#39;MAT218&#39;),
+(41, &#39;ECN111&#39;),
+(41, &#39;ECN295&#39;),
+(40, &#39;ECN366&#39;),
+(39, &#39;CHM221&#39;),
+(39, &#39;CHM395&#39;),
+(38, &#39;ECN111&#39;),
+(38, &#39;ECN378&#39;),
+(37, &#39;CSC213&#39;),
+(36, &#39;MAT133&#39;),
+(36, &#39;MAT195&#39;),
+(35, &#39;MAT133&#39;),
+(35, &#39;MAT321&#39;),
+(34, &#39;STA209&#39;),
+(33, &#39;CHM363&#39;),
+(32, &#39;MAT215&#39;),
+(32, &#39;MAT313&#39;),
+(31, &#39;CHM363&#39;),
+(30, &#39;CHM129&#39;),
+(30, &#39;CHM221&#39;),
+(29, &#39;CSC301&#39;),
+(28, &#39;CHM221&#39;),
+(27, &#39;CSC324&#39;),
+(26, &#39;CHM221&#39;),
+(25, &#39;STA310&#39;),
+(24, &#39;MAT215&#39;),
+(24, &#39;MAT218&#39;),
+(23, &#39;CSC161&#39;),
+(23, &#39;CSC262&#39;),
+(22, &#39;MAT131&#39;),
+(22, &#39;MAT317&#39;),
+(21, &#39;MAT335&#39;),
+(21, &#39;STA335&#39;),
+(20, &#39;ECN240&#39;),
+(20, &#39;ECN280&#39;),
+(19, &#39;CSC151&#39;),
+(19, &#39;CSC395&#39;),
+(18, &#39;ECN379&#39;),
+(17, &#39;CHM129&#39;),
+(16, &#39;MAT131&#39;),
+(16, &#39;MAT316&#39;),
+(15, &#39;CHM210&#39;),
+(14, &#39;ECN286&#39;),
+(14, &#39;ECN395&#39;),
+(13, &#39;CHM210&#39;),
+(13, &#39;CHM358&#39;),
+(12, &#39;STA209&#39;),
+(11, &#39;CSC161&#39;),
+(11, &#39;CSC341&#39;),
+(10, &#39;CSC151&#39;),
+(10, &#39;CSC208&#39;),
+(10, &#39;MAT208&#39;),
+(9, &#39;MAT220&#39;),
+(8, &#39;CHM129&#39;),
+(8, &#39;CHM363&#39;),
+(7, &#39;MAT100&#39;),
+(6, &#39;CSC207&#39;),
+(5, &#39;CHM129&#39;),
+(5, &#39;CHM221&#39;),
+(4, &#39;ECN282&#39;),
+(4, &#39;ECN395&#39;),
+(3, &#39;STA230&#39;),
+(3, &#39;CSC301&#39;),
+(2, &#39;ECN111&#39;),
+(2, &#39;ECN395&#39;),
+(1, &#39;ECN235&#39;),
+(1, &#39;ECN282&#39;);&quot;)</code></pre>
+<pre><code>## [1] 68</code></pre>
+<pre class="r"><code>dbGetQuery(Lab9DB, &quot;SELECT * FROM &#39;departments&#39;&quot;)</code></pre>
+<pre><code>##   did          depname
+## 1 CHM        Chemistry
+## 2 CSC Computer Science
+## 3 ECN        Economics
+## 4 MAT      Mathematics
+## 5 STA       Statistics</code></pre>
+</div>
+<div id="perform-queries-to-access-tables" class="section level3">
+<h3>Perform Queries to Access Tables</h3>
+<pre class="r"><code>#Select all values from the professors table where the first name starts with W:
+dbGetQuery(Lab9DB, &quot;SELECT * FROM professors
+WHERE fname LIKE &#39;W%&#39;;&quot;)</code></pre>
+<pre><code>##   pid   fname     email did
+## 1   3 William [William] STA</code></pre>
+<pre class="r"><code>#Select all values from the professors table where the department id is ‘STA’:
+dbGetQuery(Lab9DB, &quot;SELECT * FROM professors
+WHERE did = &#39;STA&#39;;&quot;)</code></pre>
+<pre><code>##   pid    fname      email did
+## 1  34   Collin   [Collin] STA
+## 2  25     Jeff     [Jeff] STA
+## 3  21 Jonathan [Jonathan] STA
+## 4  12   Nathan   [Nathan] STA
+## 5   3  William  [William] STA</code></pre>
+<pre class="r"><code>#Select all columns and the first 4 rows from the professors table where the department id is ‘STA’:
+dbGetQuery(Lab9DB, &quot;SELECT * FROM professors
+WHERE did = &#39;STA&#39;
+LIMIT 4;&quot;)</code></pre>
+<pre><code>##   pid    fname      email did
+## 1  34   Collin   [Collin] STA
+## 2  25     Jeff     [Jeff] STA
+## 3  21 Jonathan [Jonathan] STA
+## 4  12   Nathan   [Nathan] STA</code></pre>
+<pre class="r"><code>#Select all values from the professors table where the first name starts with W and the department id is ‘STA’:
+dbGetQuery(Lab9DB, &quot;SELECT * FROM professors
+WHERE fname like &#39;W%&#39; and did = &#39;STA&#39;;&quot;)</code></pre>
+<pre><code>##   pid   fname     email did
+## 1   3 William [William] STA</code></pre>
+<pre class="r"><code>#Select distinct department ids from the professor table:
+dbGetQuery(Lab9DB, &quot;SELECT DISTINCT did FROM professors;&quot;)</code></pre>
+<pre><code>##   did
+## 1 MAT
+## 2 ECN
+## 3 CHM
+## 4 CSC
+## 5 STA</code></pre>
+<pre class="r"><code>#Select all emails and create a new variable ‘ds_dept’ based on the department id from the professors table:
+dbGetQuery(Lab9DB, &quot;SELECT 
+  email,
+  CASE
+    WHEN did = &#39;STA&#39; then &#39;STATS&#39;
+    WHEN did = &#39;CSC&#39; then &#39;CompSCI&#39;
+    WHEN did = &#39;ECN&#39; then &#39;Econ&#39;
+    ELSE &#39;Not&#39;
+  END AS ds_dept
+FROM professors;&quot;)</code></pre>
+<pre><code>##              email ds_dept
+## 1          [Royce]     Not
+## 2       [Abhinaba]    Econ
+## 3         [Andrea]    Econ
+## 4         [Andrew]     Not
+## 5        [Bradley]    Econ
+## 6        [Charlie] CompSCI
+## 7    [Christopher]     Not
+## 8        [Christy]     Not
+## 9         [Collin]   STATS
+## 10        [Corasi]     Not
+## 11       [Debdeep]     Not
+## 12        [Elaine]     Not
+## 13     [Elizabeth]     Not
+## 14          [Eric] CompSCI
+## 15         [Erick]     Not
+## 16      [Fernanda] CompSCI
+## 17         [James]     Not
+## 18          [Jeff]   STATS
+## 19         [Jenny]     Not
+## 20         [Jerod] CompSCI
+## 21           [Joe]     Not
+## 22      [Jonathan]   STATS
+## 23         [Keith]    Econ
+## 24          [Leah] CompSCI
+## 25         [Logan]    Econ
+## 26        [Maisha]     Not
+## 27          [Marc]     Not
+## 28          [Mark]     Not
+## 29      [Meredith]    Econ
+## 30         [Molly]     Not
+## 31        [Nathan]   STATS
+## 32        [Nicole] CompSCI
+## 33 [Peter-Michael] CompSCI
+## 34       [Pratima]     Not
+## 35      [Rajendra]     Not
+## 36         [Renee]     Not
+## 37        [Samuel] CompSCI
+## 38       [Stephen]     Not
+## 39           [Thu]    Econ
+## 40       [William]   STATS
+## 41         [Xiang]    Econ
+## 42       [Xinchan]    Econ</code></pre>
+<pre class="r"><code>#Count the number of rows in the professors table where the department id is ‘STA’ or ‘CSC’:
+dbGetQuery(Lab9DB, &quot;SELECT COUNT(*) FROM professors
+WHERE did IN(&#39;STA&#39;,&#39;CSC&#39;);&quot;)</code></pre>
+<pre><code>##   COUNT(*)
+## 1       13</code></pre>
+<pre class="r"><code>#Count the number of rows in the professors table by department id where the department id is ‘STA’ or ‘CSC’, and rename that column to count_profs:
+dbGetQuery(Lab9DB, &quot;SELECT did,COUNT(*) as count_profs FROM professors 
+WHERE did IN(&#39;STA&#39;,&#39;CSC&#39;) 
+GROUP BY did;&quot;)</code></pre>
+<pre><code>##   did count_profs
+## 1 CSC           8
+## 2 STA           5</code></pre>
+<pre class="r"><code>#Count the number of professors by department in the professors database and call it num_profs. In addition, specify the department with a custom case command:
+dbGetQuery(Lab9DB, &quot;SELECT 
+  CASE
+    WHEN did = &#39;STA&#39; then &#39;STATS&#39;
+    WHEN did = &#39;CSC&#39; then &#39;CompSCI&#39;
+    WHEN did = &#39;ECN&#39; then &#39;Econ&#39;
+    ELSE &#39;Not&#39;
+  END AS ds_dept, COUNT(*) AS num_profs
+FROM professors
+GROUP BY ds_dept;&quot;)</code></pre>
+<pre><code>##   ds_dept num_profs
+## 1 CompSCI         8
+## 2    Econ         9
+## 3     Not        20
+## 4   STATS         5</code></pre>
+<pre class="r"><code>#Pull each of the 4 tables from the Database above and save them as dataframes with the same name in R.
+CompSCI &lt;- dbGetQuery(Lab9DB, &quot;SELECT 
+  CASE
+    WHEN did = &#39;STA&#39; then &#39;STATS&#39;
+    WHEN did = &#39;CSC&#39; then &#39;CompSCI&#39;
+    WHEN did = &#39;ECN&#39; then &#39;Econ&#39;
+    ELSE &#39;Not&#39;
+  END AS ds_dept, COUNT(*) AS num_profs
+FROM professors
+WHERE ds_dept = &#39;CompSCI&#39;&quot;)
+
+Econ &lt;- dbGetQuery(Lab9DB, &quot;SELECT 
+  CASE
+    WHEN did = &#39;STA&#39; then &#39;STATS&#39;
+    WHEN did = &#39;CSC&#39; then &#39;CompSCI&#39;
+    WHEN did = &#39;ECN&#39; then &#39;Econ&#39;
+    ELSE &#39;Not&#39;
+  END AS ds_dept, COUNT(*) AS num_profs
+FROM professors
+WHERE ds_dept = &#39;Econ&#39;&quot;)
+
+STATS &lt;- dbGetQuery(Lab9DB, &quot;SELECT 
+  CASE
+    WHEN did = &#39;STA&#39; then &#39;STATS&#39;
+    WHEN did = &#39;CSC&#39; then &#39;CompSCI&#39;
+    WHEN did = &#39;ECN&#39; then &#39;Econ&#39;
+    ELSE &#39;Not&#39;
+  END AS ds_dept, COUNT(*) AS num_profs
+FROM professors
+WHERE ds_dept = &#39;STATS&#39;&quot;)
+
+Not &lt;- dbGetQuery(Lab9DB, &quot;SELECT 
+  CASE
+    WHEN did = &#39;STA&#39; then &#39;STATS&#39;
+    WHEN did = &#39;CSC&#39; then &#39;CompSCI&#39;
+    WHEN did = &#39;ECN&#39; then &#39;Econ&#39;
+    ELSE &#39;Not&#39;
+  END AS ds_dept, COUNT(*) AS num_profs
+FROM professors
+WHERE ds_dept = &#39;Not&#39;&quot;)</code></pre>
+</div>
+<div id="mutating-joins" class="section level3">
+<h3>Mutating Joins</h3>
+<pre class="r"><code>#Left outer join
+dbGetQuery(Lab9DB, &quot;SELECT * FROM departments
+LEFT JOIN courses ON departments.did = courses.did
+LIMIT 5;&quot;)</code></pre>
+<pre><code>##   did   depname    cid                       cname did
+## 1 CHM Chemistry CHM129     General Chemistry w/lab CHM
+## 2 CHM Chemistry CHM210  Analytical Chemistry w/Lab CHM
+## 3 CHM Chemistry CHM221   Organic Chemistry I w/lab CHM
+## 4 CHM Chemistry CHM358 Instrumental Analysis w/lab CHM
+## 5 CHM Chemistry CHM363  Physical Chemistry I w/lab CHM</code></pre>
+<pre class="r"><code>#Left join to remove duplicates
+dbGetQuery(Lab9DB, &quot;SELECT departments.did, depname, cid, cname FROM departments
+LEFT JOIN courses ON departments.did = courses.did
+LIMIT 5;&quot;)</code></pre>
+<pre><code>##   did   depname    cid                       cname
+## 1 CHM Chemistry CHM129     General Chemistry w/lab
+## 2 CHM Chemistry CHM210  Analytical Chemistry w/Lab
+## 3 CHM Chemistry CHM221   Organic Chemistry I w/lab
+## 4 CHM Chemistry CHM358 Instrumental Analysis w/lab
+## 5 CHM Chemistry CHM363  Physical Chemistry I w/lab</code></pre>
+</div>
+<div id="practice" class="section level3">
+<h3>Practice</h3>
+<pre class="r"><code>#Left join to add the department name to the data in the professors table and return the first 5 values
+dbGetQuery(Lab9DB, &quot;SELECT professors.did, fname, email, pid FROM professors
+LEFT JOIN departments ON professors.did = departments.did
+LIMIT 5;&quot;)</code></pre>
+<pre><code>##   did    fname      email pid
+## 1 MAT    Royce    [Royce]  42
+## 2 ECN Abhinaba [Abhinaba]  41
+## 3 ECN   Andrea   [Andrea]  40
+## 4 CHM   Andrew   [Andrew]  39
+## 5 ECN  Bradley  [Bradley]  38</code></pre>
+<pre class="r"><code>#Create a table containing only professor ids and department ids
+dbGetQuery(Lab9DB, &quot;SELECT pid, professors.did FROM professors
+LEFT JOIN departments ON professors.did = departments.did&quot;)</code></pre>
+<pre><code>##    pid did
+## 1   42 MAT
+## 2   41 ECN
+## 3   40 ECN
+## 4   39 CHM
+## 5   38 ECN
+## 6   37 CSC
+## 7   36 MAT
+## 8   35 MAT
+## 9   34 STA
+## 10  33 CHM
+## 11  32 MAT
+## 12  31 CHM
+## 13  30 CHM
+## 14  29 CSC
+## 15  28 CHM
+## 16  27 CSC
+## 17  26 CHM
+## 18  25 STA
+## 19  24 MAT
+## 20  23 CSC
+## 21  22 MAT
+## 22  21 STA
+## 23  20 ECN
+## 24  19 CSC
+## 25  18 ECN
+## 26  17 CHM
+## 27  16 MAT
+## 28  15 CHM
+## 29  14 ECN
+## 30  13 CHM
+## 31  12 STA
+## 32  11 CSC
+## 33  10 CSC
+## 34   9 MAT
+## 35   8 CHM
+## 36   7 MAT
+## 37   6 CSC
+## 38   5 CHM
+## 39   4 ECN
+## 40   3 STA
+## 41   2 ECN
+## 42   1 ECN</code></pre>
+<pre class="r"><code>#Create a table containing only the number of faculty in each department by department id
+dbGetQuery(Lab9DB, &quot;SELECT did,COUNT(*) FROM professors
+GROUP BY did&quot;)</code></pre>
+<pre><code>##   did COUNT(*)
+## 1 CHM       11
+## 2 CSC        8
+## 3 ECN        9
+## 4 MAT        9
+## 5 STA        5</code></pre>
+<pre class="r"><code>#Create a table containing only professor ids and the name of the department they are in
+dbGetQuery(Lab9DB, &quot;SELECT pid, depname FROM professors
+LEFT JOIN departments ON professors.did = departments.did&quot;)</code></pre>
+<pre><code>##    pid          depname
+## 1   42      Mathematics
+## 2   41        Economics
+## 3   40        Economics
+## 4   39        Chemistry
+## 5   38        Economics
+## 6   37 Computer Science
+## 7   36      Mathematics
+## 8   35      Mathematics
+## 9   34       Statistics
+## 10  33        Chemistry
+## 11  32      Mathematics
+## 12  31        Chemistry
+## 13  30        Chemistry
+## 14  29 Computer Science
+## 15  28        Chemistry
+## 16  27 Computer Science
+## 17  26        Chemistry
+## 18  25       Statistics
+## 19  24      Mathematics
+## 20  23 Computer Science
+## 21  22      Mathematics
+## 22  21       Statistics
+## 23  20        Economics
+## 24  19 Computer Science
+## 25  18        Economics
+## 26  17        Chemistry
+## 27  16      Mathematics
+## 28  15        Chemistry
+## 29  14        Economics
+## 30  13        Chemistry
+## 31  12       Statistics
+## 32  11 Computer Science
+## 33  10 Computer Science
+## 34   9      Mathematics
+## 35   8        Chemistry
+## 36   7      Mathematics
+## 37   6 Computer Science
+## 38   5        Chemistry
+## 39   4        Economics
+## 40   3       Statistics
+## 41   2        Economics
+## 42   1        Economics</code></pre>
+<pre class="r"><code>#Determine the number of faculty in each department by department name
+dbGetQuery(Lab9DB, &quot;SELECT depname,COUNT(*) FROM professors
+LEFT JOIN departments ON professors.did = departments.did
+GROUP BY depname&quot;)</code></pre>
+<pre><code>##            depname COUNT(*)
+## 1        Chemistry       11
+## 2 Computer Science        8
+## 3        Economics        9
+## 4      Mathematics        9
+## 5       Statistics        5</code></pre>
+<pre class="r"><code>#Create a table by left joining professors and profcourses
+dbGetQuery(Lab9DB, &quot;SELECT profcourses.pid, did, fname, email, cid FROM professors
+LEFT JOIN profcourses ON professors.pid = profcourses.pid&quot;)</code></pre>
+<pre><code>##    pid did         fname           email    cid
+## 1   42 MAT         Royce         [Royce] MAT131
+## 2   42 MAT         Royce         [Royce] MAT218
+## 3   41 ECN      Abhinaba      [Abhinaba] ECN111
+## 4   41 ECN      Abhinaba      [Abhinaba] ECN295
+## 5   40 ECN        Andrea        [Andrea] ECN366
+## 6   39 CHM        Andrew        [Andrew] CHM221
+## 7   39 CHM        Andrew        [Andrew] CHM395
+## 8   38 ECN       Bradley       [Bradley] ECN111
+## 9   38 ECN       Bradley       [Bradley] ECN378
+## 10  37 CSC       Charlie       [Charlie] CSC213
+## 11  36 MAT   Christopher   [Christopher] MAT133
+## 12  36 MAT   Christopher   [Christopher] MAT195
+## 13  35 MAT       Christy       [Christy] MAT133
+## 14  35 MAT       Christy       [Christy] MAT321
+## 15  34 STA        Collin        [Collin] STA209
+## 16  33 CHM        Corasi        [Corasi] CHM363
+## 17  32 MAT       Debdeep       [Debdeep] MAT215
+## 18  32 MAT       Debdeep       [Debdeep] MAT313
+## 19  31 CHM        Elaine        [Elaine] CHM363
+## 20  30 CHM     Elizabeth     [Elizabeth] CHM129
+## 21  30 CHM     Elizabeth     [Elizabeth] CHM221
+## 22  29 CSC          Eric          [Eric] CSC301
+## 23  28 CHM         Erick         [Erick] CHM221
+## 24  27 CSC      Fernanda      [Fernanda] CSC324
+## 25  26 CHM         James         [James] CHM221
+## 26  25 STA          Jeff          [Jeff] STA310
+## 27  24 MAT         Jenny         [Jenny] MAT215
+## 28  24 MAT         Jenny         [Jenny] MAT218
+## 29  23 CSC         Jerod         [Jerod] CSC161
+## 30  23 CSC         Jerod         [Jerod] CSC262
+## 31  22 MAT           Joe           [Joe] MAT131
+## 32  22 MAT           Joe           [Joe] MAT317
+## 33  21 STA      Jonathan      [Jonathan] MAT335
+## 34  21 STA      Jonathan      [Jonathan] STA335
+## 35  20 ECN         Keith         [Keith] ECN240
+## 36  20 ECN         Keith         [Keith] ECN280
+## 37  19 CSC          Leah          [Leah] CSC151
+## 38  19 CSC          Leah          [Leah] CSC395
+## 39  18 ECN         Logan         [Logan] ECN379
+## 40  17 CHM        Maisha        [Maisha] CHM129
+## 41  16 MAT          Marc          [Marc] MAT131
+## 42  16 MAT          Marc          [Marc] MAT316
+## 43  15 CHM          Mark          [Mark] CHM210
+## 44  14 ECN      Meredith      [Meredith] ECN286
+## 45  14 ECN      Meredith      [Meredith] ECN395
+## 46  13 CHM         Molly         [Molly] CHM210
+## 47  13 CHM         Molly         [Molly] CHM358
+## 48  12 STA        Nathan        [Nathan] STA209
+## 49  11 CSC        Nicole        [Nicole] CSC161
+## 50  11 CSC        Nicole        [Nicole] CSC341
+## 51  10 CSC Peter-Michael [Peter-Michael] CSC151
+## 52  10 CSC Peter-Michael [Peter-Michael] CSC208
+## 53  10 CSC Peter-Michael [Peter-Michael] MAT208
+## 54   9 MAT       Pratima       [Pratima] MAT220
+## 55   8 CHM      Rajendra      [Rajendra] CHM129
+## 56   8 CHM      Rajendra      [Rajendra] CHM363
+## 57   7 MAT         Renee         [Renee] MAT100
+## 58   6 CSC        Samuel        [Samuel] CSC207
+## 59   5 CHM       Stephen       [Stephen] CHM129
+## 60   5 CHM       Stephen       [Stephen] CHM221
+## 61   4 ECN           Thu           [Thu] ECN282
+## 62   4 ECN           Thu           [Thu] ECN395
+## 63   3 STA       William       [William] CSC301
+## 64   3 STA       William       [William] STA230
+## 65   2 ECN         Xiang         [Xiang] ECN111
+## 66   2 ECN         Xiang         [Xiang] ECN395
+## 67   1 ECN       Xinchan       [Xinchan] ECN235
+## 68   1 ECN       Xinchan       [Xinchan] ECN282</code></pre>
+<pre class="r"><code>#Create a table by left joining the previous table and courses
+dbGetQuery(Lab9DB, &quot;SELECT profcourses.pid, courses.cid, cname, fname FROM professors
+LEFT JOIN profcourses ON professors.pid = profcourses.pid
+LEFT JOIN courses ON profcourses.cid = courses.cid&quot;)</code></pre>
+<pre><code>##    pid    cid                         cname         fname
+## 1   42 MAT131                    Calculus I         Royce
+## 2   42 MAT218      Elementary Number Theory         Royce
+## 3   41 ECN111     Introduction to Economics      Abhinaba
+## 4   41 ECN295      ST: Behavioral Economics      Abhinaba
+## 5   40 ECN366   Seminar in Health Economics        Andrea
+## 6   39 CHM221     Organic Chemistry I w/lab        Andrew
+## 7   39 CHM395      ST: Adv NMR Spectroscopy        Andrew
+## 8   38 ECN111     Introduction to Economics       Bradley
+## 9   38 ECN378    Seminar in Law &amp; Economics       Bradley
+## 10  37 CSC213    Oper Sys/Paral Algor w/lab       Charlie
+## 11  36 MAT133                   Calculus II   Christopher
+## 12  36 MAT195    ST: Intro to Math Practice   Christopher
+## 13  35 MAT133                   Calculus II       Christy
+## 14  35 MAT321 Foundatns of Abstract Algebra       Christy
+## 15  34 STA209            Applied Statistics        Collin
+## 16  33 CHM363    Physical Chemistry I w/lab        Corasi
+## 17  32 MAT215                Linear Algebra       Debdeep
+## 18  32 MAT313            Numerical Analysis       Debdeep
+## 19  31 CHM363    Physical Chemistry I w/lab        Elaine
+## 20  30 CHM129       General Chemistry w/lab     Elizabeth
+## 21  30 CHM221     Organic Chemistry I w/lab     Elizabeth
+## 22  29 CSC301        Analysis of Algorithms          Eric
+## 23  28 CHM221     Organic Chemistry I w/lab         Erick
+## 24  27 CSC324   Software Design &amp; Dev w/Lab      Fernanda
+## 25  26 CHM221     Organic Chemistry I w/lab         James
+## 26  25 STA310          Statistical Modeling          Jeff
+## 27  24 MAT215                Linear Algebra         Jenny
+## 28  24 MAT218      Elementary Number Theory         Jenny
+## 29  23 CSC161 Imperative Prob Solving w/lab         Jerod
+## 30  23 CSC262               Computer Vision         Jerod
+## 31  22 MAT131                    Calculus I           Joe
+## 32  22 MAT317              Fourier Analysis           Joe
+## 33  21 MAT335    Probability &amp; Statistics I      Jonathan
+## 34  21 STA335    Probability &amp; Statistics I      Jonathan
+## 35  20 ECN240  Resource &amp; Environ Economics         Keith
+## 36  20 ECN280        Microeconomic Analysis         Keith
+## 37  19 CSC151 Functional Prob Solving w/lab          Leah
+## 38  19 CSC395  ST: Algorithms, Ethics &amp; Soc          Leah
+## 39  18 ECN379      Seminar in Econ of Crime         Logan
+## 40  17 CHM129       General Chemistry w/lab        Maisha
+## 41  16 MAT131                    Calculus I          Marc
+## 42  16 MAT316       Foundations of Analysis          Marc
+## 43  15 CHM210    Analytical Chemistry w/Lab          Mark
+## 44  14 ECN286                  Econometrics      Meredith
+## 45  14 ECN395  ST: Time Series Econometrics      Meredith
+## 46  13 CHM210    Analytical Chemistry w/Lab         Molly
+## 47  13 CHM358   Instrumental Analysis w/lab         Molly
+## 48  12 STA209            Applied Statistics        Nathan
+## 49  11 CSC161 Imperative Prob Solving w/lab        Nicole
+## 50  11 CSC341    Auto, Frm Lng, Cmp Cmplxty        Nicole
+## 51  10 CSC151 Functional Prob Solving w/lab Peter-Michael
+## 52  10 CSC208           Discrete Structures Peter-Michael
+## 53  10 MAT208           Discrete Structures Peter-Michael
+## 54   9 MAT220        Differential Equations       Pratima
+## 55   8 CHM129       General Chemistry w/lab      Rajendra
+## 56   8 CHM363    Physical Chemistry I w/lab      Rajendra
+## 57   7 MAT100               Math Laboratory         Renee
+## 58   6 CSC207  OO Prob Slvg, Data Struc/Alg        Samuel
+## 59   5 CHM129       General Chemistry w/lab       Stephen
+## 60   5 CHM221     Organic Chemistry I w/lab       Stephen
+## 61   4 ECN282        Macroeconomic Analysis           Thu
+## 62   4 ECN395  ST: Time Series Econometrics           Thu
+## 63   3 CSC301        Analysis of Algorithms       William
+## 64   3 STA230  Introduction to Data Science       William
+## 65   2 ECN111     Introduction to Economics         Xiang
+## 66   2 ECN395  ST: Time Series Econometrics         Xiang
+## 67   1 ECN235             Money and Banking       Xinchan
+## 68   1 ECN282        Macroeconomic Analysis       Xinchan</code></pre>
+<pre class="r"><code>#Create a table by left joining the 2 previous tables and departments using the foreign key from professors
+dbGetQuery(Lab9DB, &quot;SELECT profcourses.pid, cname, depname FROM professors
+LEFT JOIN profcourses ON professors.pid = profcourses.pid
+LEFT JOIN courses ON profcourses.cid = courses.cid
+LEFT JOIN departments on professors.did = departments.did
+ORDER BY depname, profcourses.pid DESC, cname&quot;)</code></pre>
+<pre><code>##    pid                         cname          depname
+## 1   39     Organic Chemistry I w/lab        Chemistry
+## 2   39      ST: Adv NMR Spectroscopy        Chemistry
+## 3   33    Physical Chemistry I w/lab        Chemistry
+## 4   31    Physical Chemistry I w/lab        Chemistry
+## 5   30       General Chemistry w/lab        Chemistry
+## 6   30     Organic Chemistry I w/lab        Chemistry
+## 7   28     Organic Chemistry I w/lab        Chemistry
+## 8   26     Organic Chemistry I w/lab        Chemistry
+## 9   17       General Chemistry w/lab        Chemistry
+## 10  15    Analytical Chemistry w/Lab        Chemistry
+## 11  13    Analytical Chemistry w/Lab        Chemistry
+## 12  13   Instrumental Analysis w/lab        Chemistry
+## 13   8       General Chemistry w/lab        Chemistry
+## 14   8    Physical Chemistry I w/lab        Chemistry
+## 15   5       General Chemistry w/lab        Chemistry
+## 16   5     Organic Chemistry I w/lab        Chemistry
+## 17  37    Oper Sys/Paral Algor w/lab Computer Science
+## 18  29        Analysis of Algorithms Computer Science
+## 19  27   Software Design &amp; Dev w/Lab Computer Science
+## 20  23               Computer Vision Computer Science
+## 21  23 Imperative Prob Solving w/lab Computer Science
+## 22  19 Functional Prob Solving w/lab Computer Science
+## 23  19  ST: Algorithms, Ethics &amp; Soc Computer Science
+## 24  11    Auto, Frm Lng, Cmp Cmplxty Computer Science
+## 25  11 Imperative Prob Solving w/lab Computer Science
+## 26  10           Discrete Structures Computer Science
+## 27  10           Discrete Structures Computer Science
+## 28  10 Functional Prob Solving w/lab Computer Science
+## 29   6  OO Prob Slvg, Data Struc/Alg Computer Science
+## 30  41     Introduction to Economics        Economics
+## 31  41      ST: Behavioral Economics        Economics
+## 32  40   Seminar in Health Economics        Economics
+## 33  38     Introduction to Economics        Economics
+## 34  38    Seminar in Law &amp; Economics        Economics
+## 35  20        Microeconomic Analysis        Economics
+## 36  20  Resource &amp; Environ Economics        Economics
+## 37  18      Seminar in Econ of Crime        Economics
+## 38  14                  Econometrics        Economics
+## 39  14  ST: Time Series Econometrics        Economics
+## 40   4        Macroeconomic Analysis        Economics
+## 41   4  ST: Time Series Econometrics        Economics
+## 42   2     Introduction to Economics        Economics
+## 43   2  ST: Time Series Econometrics        Economics
+## 44   1        Macroeconomic Analysis        Economics
+## 45   1             Money and Banking        Economics
+## 46  42                    Calculus I      Mathematics
+## 47  42      Elementary Number Theory      Mathematics
+## 48  36                   Calculus II      Mathematics
+## 49  36    ST: Intro to Math Practice      Mathematics
+## 50  35                   Calculus II      Mathematics
+## 51  35 Foundatns of Abstract Algebra      Mathematics
+## 52  32                Linear Algebra      Mathematics
+## 53  32            Numerical Analysis      Mathematics
+## 54  24      Elementary Number Theory      Mathematics
+## 55  24                Linear Algebra      Mathematics
+## 56  22                    Calculus I      Mathematics
+## 57  22              Fourier Analysis      Mathematics
+## 58  16                    Calculus I      Mathematics
+## 59  16       Foundations of Analysis      Mathematics
+## 60   9        Differential Equations      Mathematics
+## 61   7               Math Laboratory      Mathematics
+## 62  34            Applied Statistics       Statistics
+## 63  25          Statistical Modeling       Statistics
+## 64  21    Probability &amp; Statistics I       Statistics
+## 65  21    Probability &amp; Statistics I       Statistics
+## 66  12            Applied Statistics       Statistics
+## 67   3        Analysis of Algorithms       Statistics
+## 68   3  Introduction to Data Science       Statistics</code></pre>
+</div>
 
 
 

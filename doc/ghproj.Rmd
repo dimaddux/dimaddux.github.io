@@ -7,3 +7,4 @@ output: html_document
 
 <font size="4">[Data Science Final Project](content/230final.html)
 
+<font size="4">[SQL Basics](content/SQLproj.html)
