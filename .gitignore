@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+doc/ghproj.Rmd
+doc/ghproj.html
+doc/ghlabs.Rmd
+doc/ghlabs.html
+doc/ghhw.Rmd
+doc/ghhw.html

@@ -1,0 +1,10 @@
+---
+title: "<br>STA-310: Statistical Modeling"
+output: html_document
+---
+<br>
+ <font size="4">[Projects](doc/310proj.html)
+ 
+ <font size="4">[Homeworks](doc/310hw.html)
+
+ <font size="4">[Labs](doc/310labs.html)

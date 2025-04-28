@@ -1,0 +1,10 @@
+---
+title: "<br>STA-395: Categorical Data Analysis"
+output: html_document
+---
+<br>
+ <font size="4">[Projects](doc/395proj.html)
+ 
+ <font size="4">[Homeworks](doc/395hw.html)
+
+ <font size="4">[Labs](doc/395labs.html)

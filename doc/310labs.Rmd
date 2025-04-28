@@ -1,0 +1,14 @@
+---
+title: <br>Labs
+output: html_document
+---
+<br>
+<font size="4">[Model Basics & Linear Regression](content/310-modbas.html)
+
+<font size="4">[Regression Inference & Data Transformations](content/310-regdata.html)
+
+<font size="4">[Homework 1](content/310hw1.html)
+
+<font size="4">[Homework 1](content/310hw1.html)
+
+<font size="4">[Homework 1](content/310hw1.html)

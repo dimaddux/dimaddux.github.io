@@ -8,17 +8,19 @@ output: html_document
 
 ### Coding Experience:
 
- <font size="4">[Projects](doc/ghproj.html)
+ <font size="4">[Intro to Data Science](230page.html)
  
- <font size="4">[Homeworks](doc/ghhw.html)
+ <font size="4">[Statistical Modeling](310page.html)
 
- <font size="4">[Labs](doc/ghlabs.html)
+ <font size="4">[Categorical Data Analysis](395page.html)
  
- <font size="4">[Website](doc/webs.html)
+ <font size="4">[Directed Research](drpage.html)
  
  <br> 
  
 ### Relevant Courses:
+  <font size="3">[STA-395](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=34&coid=75321): [Advanced Special Topic: Categorical Data Analysis](https://collinn.github.io/s25/395/s395s25.html) (R, Grinnell College)
+  
   <font size="3">[STA-310](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=20&coid=44235): Statistical Modeling (R, Grinnell College)
  
   <font size="3">[STA-230](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=26&coid=53002): [Intro to Data Science](https://collinn.github.io/teaching/2023/s230f23.html) (R, Grinnell College)
@@ -28,5 +30,3 @@ output: html_document
   <font size="3">[PSY-225](https://catalog.grinnell.edu/preview_course_nopop.php?catoid=16&coid=37828): Research Methods (SPSS, Grinnell College) 
   
   <font size="3">PSY-399: Directed Research (R, Grinnell College)
-  
-   

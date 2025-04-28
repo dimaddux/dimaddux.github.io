@@ -1,0 +1,10 @@
+---
+title: "<br>STA-230: Intro to Data Science"
+output: html_document
+---
+<br>
+ <font size="4">[Projects](doc/230proj.html)
+ 
+ <font size="4">[Homeworks](doc/230hw.html)
+
+ <font size="4">[Labs](doc/230labs.html)
