@@ -357,8 +357,6 @@ display: none;
 </div>
 
 
-<pre class="r"><code>library(dplyr)
-library(ggplot2)</code></pre>
 <p><strong>S. Bradley and colleagues (2015) at Clarke University gave
 two identical surveys to a sample of n = 203 students (i.e., each
 student did the survey twice). Each survey contained 25 writing
@@ -372,7 +370,9 @@ and gave no semantic clues to indicate the author’s gender.</strong></p>
 <p><strong>Question 1</strong> Import the data into your R session and
 save it as the object Handwriting. Briefly review the codebook. What
 does the Survey1 variable represent?</p>
-<pre class="r"><code>Handwriting &lt;- read.csv(&#39;data/Handwriting.csv&#39;)
+<pre class="r"><code>library(dplyr)
+library(ggplot2)
+Handwriting &lt;- read.csv(&#39;data/Handwriting.csv&#39;)
 head(Handwriting)</code></pre>
 <pre><code>##   Individual Gender Survey1 Survey2 FemaleID MaleID Both DIFF
 ## 1          1      1      72      68     75.0   69.2   68    4

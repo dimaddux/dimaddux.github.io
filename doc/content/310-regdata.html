@@ -358,8 +358,6 @@ Transformations</h1>
 </div>
 
 
-<pre class="r"><code>library(ggplot2)
-library(dplyr)</code></pre>
 <p><strong>A group of students at Cal Poly wanted to investigate the
 factors that influence house prices (Koester, Davis, and Ross, 2003).
 They selected a random sample of n = 83 houses for sale in three regions
@@ -376,7 +374,9 @@ of σ, the population standard deviation of the errors? How would you
 interpret this value? Use the R output to perform a t-test on the slope
 of the line and assess whether there is a “statistically significant”
 relationship between the price and the size of a house.</p>
-<pre class="r"><code>houses &lt;- read.csv(&#39;data/Houses.csv&#39;)
+<pre class="r"><code>library(ggplot2)
+library(dplyr)
+houses &lt;- read.csv(&#39;data/Houses.csv&#39;)
 head(houses)</code></pre>
 <pre><code>##   Square.Feet  Price Bedrooms Baths
 ## 1        3392 339000        3   2.1

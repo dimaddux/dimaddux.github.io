@@ -1,0 +1,6 @@
+---
+title: "<br>Labs"
+output: html_document
+---
+<br>
+ <font size="4">[Linear Discriminant Analysis](content/lda.html)
