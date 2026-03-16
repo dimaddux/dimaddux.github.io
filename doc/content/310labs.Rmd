@@ -1,0 +1,22 @@
+---
+title: <br>Labs
+output: html_document
+---
+<br>
+<font size="4">[Model Basics & Linear Regression](content/310mblr.html)
+
+<font size="4">[Regression Inference & Data Transformations](content/310rida.html)
+
+<font size="4">[Exploratory Data Analysis & Regression](content/310eda.html)
+
+<font size="4">[Multiple Linear Regression](content/310mlr.html)
+
+<font size="4">[Interactions in Regression](content/310int.html)
+
+<font size="4">[Best Subsets Regression & Cross-Validation](content/310bsr.html)
+
+<font size="4">[Analysis of Variance](content/310anova.html)
+
+<font size="4">[Factorial Designs & Interaction](content/310facdes.html)
+
+<font size="4">[Logistic Regression w/ Categorical Predictor](content/310lrcp.html)

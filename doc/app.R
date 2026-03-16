@@ -11,19 +11,93 @@ library(rsconnect)
 library(maps)
 library(shinycssloaders)
 
-# read crime data set
 ogdata <- read.csv('crime_data_w_population_and_crime_rate.csv')
 
-# read unemployment and poverty data sets
-unem <- read.csv('UnemploymentDataSet.csv')
-pov <- read.csv('PovertyEstimates.csv')
+# clean data set
+ogsep <- separate(ogdata, 
+                  col = county_name, 
+                  into = c("County", "State"),
+                  sep = ", ")
+og_clean <- ogsep %>%
+  select(-c(3:14,24:25)) %>%
+  mutate(Violent_Crime = ((MURDER+RAPE+ROBBERY+AGASSLT)/population)*100000) %>%
+  mutate(Property_Crime = ((BURGLRY+LARCENY+MVTHEFT+ARSON)/population)*100000) %>%
+  select(-c(3:10)) %>%
+  mutate(County = str_remove_all(County, " County")) %>%
+  mutate(County = str_replace(County, "St. Louis city", "St. Louis City")) %>%
+  mutate(County = str_replace(County, "Baltimore city", "Baltimore City")) %>%
+  mutate(County = str_remove_all(County, " Parish")) %>%
+  mutate(County = str_replace_all(County, "\\. ", " ")) %>%
+  mutate(County = str_replace(County, "LaPorte", "La Porte")) %>%
+  mutate(County = str_replace(County, "LaMoure", "La Moure")) %>%
+  mutate(County = str_replace(County, "LaSalle", "La Salle")) %>%
+  mutate(County = str_replace(County, "DeKalb", "De Kalb")) %>%
+  mutate(County = str_replace(County, "DeWitt", "De Witt")) %>%
+  mutate(County = str_replace_all(County, "DeSoto", "De Soto")) %>%
+  mutate(County = str_replace_all(County, "DuPage", "Du Page")) %>%
+  mutate(County = str_replace_all(County, "Yellowstone County", "Yellowstone")) %>%
+  mutate(County = str_remove_all(County, "\\'")) %>%
+  mutate(County = str_replace_all(County, "Suffolk city", "Suffolk")) %>%
+  mutate(County = str_replace_all(County, "Hampton city", "Hampton")) %>%
+  mutate(County = str_replace_all(County, "Newport News city", "Newport News")) %>%
+  mutate(County = str_replace_all(County, "Norfolk city", "Norfolk")) %>%
+  filter(!str_detect(County, " Borough| city")) %>%
+  mutate(State = abbr2state(State)) %>%
+  rename(Population = population) %>%
+  arrange(State) %>%
+  filter(!State == "District of Columbia") %>%
+  mutate(across(c(4:5), round, 1))
+
+# create states only data set
+ogstates <- ogsep %>%
+  group_by(State) %>%
+  summarise(Violent_Crime = (sum(MURDER+RAPE+ROBBERY+AGASSLT) / sum(population))*100000, Property_Crime = (sum(BURGLRY+LARCENY+MVTHEFT+ARSON) / sum(population))*100000) %>%
+  mutate(State = abbr2state(State)) %>%
+  mutate(County = State) %>%
+  filter(!State == "District of Columbia") %>%
+  select(-c(4)) %>%
+  mutate(across(c(2:3), round, 1))
+
+# create states econ data set
+econstates1 <- unempov %>%
+  filter(is.na(Stabr.x)) %>%
+  filter(!row_number() %in% c(1, 11)) %>%
+  select(-c(1, 3:7, 10:11)) %>%
+  mutate(State = abbr2state(State)) %>%
+  filter(!State == "District of Columbia")
+
+# merge with crime data
+econstates <- inner_join(x = econstates1, y = ogstates, by = "State") %>%
+  rename("Median_Household_Income" = "MEDHHINC_2021", "Unemployment_Rate" = "Unemployment_rate_2021") %>%
+  mutate(County = State)
 
 # Maps
 states <- map_data("state")
 counties <- map_data("county")
 
-# Data Loading
-load("MyData.RData")
+# change crime data to lower case
+oglower <- og_clean %>%
+  mutate(region = str_to_lower(State)) %>%
+  mutate(subregion = str_to_lower(County)) %>%
+  select(-c(1,2)) %>%
+  relocate(region, subregion)
+
+# merge with counties
+crime_counties <- left_join(x = counties, y = oglower, by = c("region","subregion"))
+anti_counties <- anti_join(x = counties, y = oglower, by = c("region","subregion"))
+
+# change states and map data to upper case
+crime_map <- crime_counties %>%
+  mutate(region = str_to_title(region)) %>%
+  mutate(subregion = str_to_title(subregion)) %>%
+  filter(!region == "District Of Columbia")
+
+states1 <- states %>%
+  mutate(region = str_to_title(region)) %>%
+  mutate(subregion = str_to_title(subregion)) %>%
+  filter(!region == "District Of Columbia")
+
+save.image("MyData.rData")
 
 # Shiny App
 ui = fluidPage(

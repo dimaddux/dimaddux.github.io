@@ -1,0 +1,24 @@
+---
+title: "<br>Labs"
+output: html_document
+---
+<br>
+ <font size="4">[Loglinear Regression](content/395llr.html)
+
+ <font size="4">[Poisson Count Regression](content/395pcr.html)
+ 
+ <font size="4">[Logistic Regression Model](content/395lrm.html)
+ 
+ <font size="4">[Logistic Regression w/ Categorical Predictors](content/395lrcp.html)
+ 
+ <font size="4">[Multiple Logistic Regression](content/395mlr.html) 
+ 
+ <font size="4">[ROC Curves](content/395roc.html)
+ 
+ <font size="4">[Logistic Regression Model Selection](content/395lrms.html)
+
+ <font size="4">[Linear Discriminant Analysis](content/395lda.html)
+ 
+ <font size="4">[Regression Trees](content/395rt.html)
+ 
+ <font size="4">[GAMs and Regularization](content/395gam.html)

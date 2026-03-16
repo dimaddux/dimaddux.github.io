@@ -1,0 +1,199 @@
+---
+title: "Directed Research"
+author: "Dylan Maddux"
+date: "2025-12-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.align = 'center', 
+                      message = FALSE, warning = FALSE)
+```
+
+Prior research indicates that knowledge of historical racism relates to support for policies to address racism in the present. The Marley hypothesis argues that group perceptions of historical racism are correlated with dominant-group ignorance and denial of the extent of past racism. Knowledge about historically documented incidents of racism predicted perceptions of individual and systemic racism, with lesser knowledge being correlated with lesser perceptions of racism. Although the principles of this research have not been extended to other domains, it may be applicable to other debated historical processes, such as climate change. Historically, wealthier nations have contributed the most to emissions due to the history of industrialism and colonialism, and less developed nations are currently suffering the brunt of the effects of climate change despite providing the least contributions to the problem. Due to the link between climate change and these historical global inequalities, opinions around the understanding and extent of such inequalities may also influence perceptions of the extent of climate change.
+
+The current study argues that both greater historical knowledge of social inequality and scientific knowledge of climate change should predict support for climate change, especially redistributive climate policies, even when controlling relevant variables such as political party affiliation.
+
+A previous group of student researchers in Professor Vossoughi’s lab created a survey (“Climate Attitudes Survey”) that included open-ended questions assessing participants’ beliefs about how Western nations have amassed wealth and resources historically and their knowledge about climate change. This survey also included close-ended questions assessing participants’ support for climate change policies, including policies.
+
+Building on the lab’s prior research, I coded the open-ended responses that assessed people’s knowledge on climate change for the level of accurate scientific information provided, and performed correlational analyses of the measures in the aggregated data sets. Through linear regression modeling, I sought to explore the questions of 
+
+
+From the question, “What are the causes of rising temperatures on Earth?”, the five open-ended response categories for which I created binary outcome variables are as follows:
+
+Natural
+("Natural_C", "Exploitation_C", "Vague_C", "ManMade_C", "Unattributed_C",
+                 "Rising.Sea.Level_C", "Changing.Weather_C", "Human.Impact_C",
+                 "Wildlife.Impact_C", "Natural.Resource.Impact_C", "No.Consequence_C")
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+## load datasets
+full_og <- read.csv("data/OP CC online_FullData(in).csv")
+mine_og <- read.csv("data/Finalized Coding Subset - Copy(Sheet1).csv")
+old_og <- read.csv("data/Q1_Q2_Coding(in).csv")
+
+# clean up full dataset
+full <- full_og %>%
+  filter(Finished != 0) %>%
+  mutate(opin_1 = opin_1-1, opin_2 = opin_2-1, opin_3 = opin_3-1, opin_4 = opin_4-1, opin_5 = opin_5-1, opin_6 = opin_6-1,      opin_7 = opin_7-1, opin_8 = opin_8-1) %>%
+  select(-c(1:6, 8:13,15:18,20:23,25:28,30:33,45,47)) %>%
+  filter(!row_number() %in% c(68,114,134,144,169,192,193,236)) %>%
+  select(-c(1,31))
+
+# clean up old dataset
+old <- old_og %>%
+  filter(!row_number() %in% c(121, 172, 173, 252)) %>% #blank or irrelevant answers
+  select(-c(1,12:37))
+  
+# clean up my dataset
+mine <- mine_og %>%
+  filter(!row_number() %in% c(243,244)) %>%
+  select(-c(1,3:4, 6:7, 9:10, 12:13, 15:16, 18, 20:21, 23:24, 26:27, 29:30, 32:33, 35:36, 38))
+
+# join full and my dataset
+fullmine <- left_join(full, mine, by = c("oe_4" = "cause.of.rising.temps", "oe_5" = "consequences.of.rising.temps"))
+
+# verify no NAs
+subna <- fullmine %>%
+  filter(is.na(Natural_C))
+
+# join fullmine and old dataset
+total <- left_join(fullmine, old, by = c("oe_1" = "factors.led.western.nations.to.develop.highest.standard.of.living", "oe_2" = "why.are.some.countries.much.wealthier.than.others"))
+
+# verify no NAs
+checkna <- total %>%
+  filter(is.na(ExceptionalismQ1))
+
+## chi-squared matrix table for causes
+total[c(30:34)] <- lapply(total[c(30:34)], factor)
+subtotal <- total[sapply(total, is.factor)]
+sub1 <- total[30:34]
+
+var_names <- colnames(sub1)
+n <- length(var_names)
+chi_matrix <- matrix(NA, nrow = n, ncol = n, dimnames = list(var_names, var_names))
+
+for (i in 1:n) {
+  for (j in 1:n) {
+    if (i != j) {
+      try({
+        tbl <- table(sub1[[i]], sub1[[j]])
+        
+        if (all(dim(tbl) > 1)) {
+          test <- chisq.test(tbl)
+          chi_matrix[i, j] <- test$p.value
+        }
+      }, silent = TRUE)
+    }
+  }
+}
+
+# print df
+df1 <- as.data.frame(print(round(chi_matrix, 3)))
+
+## chi-squared matrix table for consequences
+total[c(36:40)] <- lapply(total[c(36:40)], factor)
+subtotal <- total[sapply(total, is.factor)]
+sub2 <- total[36:40]
+
+var_names <- colnames(sub2)
+n <- length(var_names)
+chi_matrix <- matrix(NA, nrow = n, ncol = n, dimnames = list(var_names, var_names))
+
+for (i in 1:n) {
+  for (j in 1:n) {
+    if (i != j) {
+      try({
+        tbl <- table(sub2[[i]], sub2[[j]])
+        
+        if (all(dim(tbl) > 1)) {
+          test <- chisq.test(tbl)
+          chi_matrix[i, j] <- test$p.value
+        }
+      }, silent = TRUE)
+    }
+  }
+}
+
+# print df
+df2 <- print(round(chi_matrix, 3))
+```
+
+```{r}
+## Correlational analyses of measures
+# define variable groups
+m1 <- c("Natural_C", "Exploitation_C", "Vague_C", "ManMade_C", "Unattributed_C",
+                 "Rising.Sea.Level_C", "Changing.Weather_C", "Human.Impact_C",
+                 "Wildlife.Impact_C", "Natural.Resource.Impact_C", "No.Consequence_C")
+
+m2 <- c("opin_1", "opin_2", "opin_3", "opin_4",
+                 "opin_5", "opin_6", "opin_7", "opin_8")
+
+# subset datasets and convert to numeric
+mdf1 <- total[m1] %>%
+  mutate(across(everything(), as.numeric))
+mdf2 <- total[m2] %>%
+  mutate(across(everything(), as.numeric))
+
+# calculate correlation matrix
+corm <- cor(mdf1, mdf2, use = "pairwise.complete.obs")
+corm
+
+# view rounded matrix
+dfc <- as.data.frame(print(round(corm, 3)))
+table(total$ColonialismQ1, total$ColonialismQ2)
+table(total$ExceptionalismQ1, total$ExceptionalismQ2)
+```
+
+```{r}
+# create combined measures (1-3 = domestic policy, 4-8 international policy)
+abr <- total %>%
+  mutate(dom = (opin_1+opin_2+opin_3)/3, int = (opin_4+opin_5+opin_6+opin_7+opin_8)/5)
+
+# collapse Q1 and Q2 for binary outcomes of Exceptionalism, Circumstance, and Colonialism responses
+tot <- abr %>%
+  mutate(Exceptionalism = pmax(ExceptionalismQ1, ExceptionalismQ2, na.rm = T),
+         Circumstance = pmax(CircumstantialQ1, CircumstanceQ2, na.rm = T),
+         Colonialism = pmax(ColonialismQ1, ColonialismQ2, na.rm = T)) %>%
+  select(-c(20, 41:48)) %>%
+    mutate(demo_5 = case_when(
+    row_number() == 38 ~ 3,
+    row_number() == 172 ~ 2,
+    TRUE ~ demo_5))
+
+# multiple regression hierarchical linear models for domestic policy outcome variable
+dlm1 <- lm(dom~demo_5, tot)
+summary(dlm1)
+
+dlm2 <- (lm(dom~demo_5 + Natural_C, tot))
+summary(dlm2)
+
+dlm3 <- (lm(dom~demo_5 + Natural_C + Colonialism, tot))
+summary(dlm3)
+
+dlm4 <- (lm(dom~demo_5 + Natural_C + ManMade_C, tot))
+summary(dlm4)
+
+dlm5 <- (lm(dom~demo_5 + Natural_C + ManMade_C + Colonialism + Exceptionalism, tot))
+summary(dlm5)
+
+# multiple regression hierarchical linear models for international policy outcome variable
+ilm1 <- lm(int~demo_5, tot)
+summary(ilm1)
+
+ilm2 <- (lm(int~demo_5 + Natural_C, tot))
+summary(ilm2)
+
+ilm3 <- (lm(int~demo_5 + Natural_C + Colonialism, tot))
+summary(ilm3)
+
+ilm4 <- (lm(int~demo_5 + Natural_C + ManMade_C, tot))
+summary(ilm4)
+
+ilm5 <- (lm(int~demo_5 + Natural_C + ManMade_C + Colonialism + Exceptionalism, tot))
+summary(ilm5)
+```

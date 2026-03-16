@@ -14,7 +14,7 @@ output: html_document
 
  <font size="4">[Categorical Data Analysis](395page.html)
  
- <font size="4">[Directed Research](drpage.html)
+  <font size="4">[Directed Research](drpage.html)
  
  <br> 
  

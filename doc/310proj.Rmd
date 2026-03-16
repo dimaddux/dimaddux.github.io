@@ -1,0 +1,10 @@
+---
+title: "<br>Projects"
+output: html_document
+---
+<br>
+<font size="4">[Project 1](content/310proj1.html)
+
+<font size="4">[Project 2](content/310proj2.html)
+
+<font size="4">[Project 3](content/310final.html)
